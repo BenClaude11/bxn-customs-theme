@@ -55,13 +55,20 @@
             <label class="product-form__option-label">{{ option.name }}</label>
             <div class="product-form__option-values" data-option-index="{{ forloop.index0 }}" role="group" aria-label="{{ option.name }}">
               {% for value in option.values %}
+                {%- capture value_text -%}{{ value }}{%- endcapture -%}
+                {%- assign option_label = value_text | split: '$' | first | strip -%}
+                {%- assign last_char = option_label | slice: -1 -%}
+                {%- if last_char == '-' or last_char == '–' or last_char == '(' or last_char == ':' or last_char == '|' or last_char == ',' -%}
+                  {%- assign option_label = option_label | remove_last: last_char | strip -%}
+                {%- endif -%}
+                {%- if option_label == blank -%}{%- assign option_label = value_text -%}{%- endif -%}
                 <button
                   type="button"
                   class="option-value{% if option.selected_value == value %} is-selected{% endif %}"
                   data-option-value="{{ value | escape }}"
                   aria-pressed="{% if option.selected_value == value %}true{% else %}false{% endif %}"
                 >
-                  {{ value }}
+                  {{ option_label }}
                 </button>
               {% endfor %}
             </div>

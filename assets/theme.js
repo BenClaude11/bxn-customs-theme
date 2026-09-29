@@ -187,7 +187,13 @@ function initProductForm() {
     }
 
     if (idInput) idInput.value = variant.id;
-    if (priceEl) priceEl.textContent = formatMoney(variant.price);
+    if (priceEl) {
+      var priceHtml = '<span class="now">' + formatMoney(variant.price) + '</span>';
+      if (variant.compare_at_price > variant.price) {
+        priceHtml += '<span class="was">' + formatMoney(variant.compare_at_price) + '</span>';
+      }
+      priceEl.innerHTML = priceHtml;
+    }
 
     if (addBtn) addBtn.disabled = !variant.available;
     if (addText) addText.textContent = variant.available ? 'Add to cart' : 'Sold out';
