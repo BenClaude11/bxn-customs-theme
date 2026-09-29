@@ -15,7 +15,9 @@
 
       <nav class="site-footer__links">
         {% for link in linklists[section.settings.menu].links %}
-          <a href="{{ link.url }}">{{ link.title }}</a>
+          {% unless link.url contains '/search' %}
+            <a href="{{ link.url }}">{{ link.title }}</a>
+          {% endunless %}
         {% endfor %}
       </nav>
     </div>
@@ -30,10 +32,12 @@
 
     <div class="site-footer__row site-footer__bottom">
       <p>&copy; {{ 'now' | date: '%Y' }} {{ shop.name }}</p>
-      <nav class="site-footer__policies">
-        {% for policy in shop.policies %}
-          <a href="{{ policy.url }}">{{ policy.title }}</a>
-        {% endfor %}
+      <nav class="site-footer__policies" aria-label="Policies">
+        <a href="/policies/refund-policy">Refund policy</a>
+        <a href="/policies/privacy-policy">Privacy policy</a>
+        <a href="/policies/shipping-policy">Shipping policy</a>
+        <a href="/policies/terms-of-service">Terms of service</a>
+        <a href="/policies/legal-notice">Legal notice</a>
       </nav>
     </div>
   </div>

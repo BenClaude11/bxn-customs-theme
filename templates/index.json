@@ -8,7 +8,6 @@
       "type": "shop-all-carousel",
       "settings": {
         "heading": "Shop all",
-        "collection": "frontpage",
         "products_to_show": 8
       }
     },
