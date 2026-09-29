@@ -22,13 +22,12 @@
       </nav>
     </div>
 
-    {% if shop.enabled_payment_types.size > 0 %}
-      <div class="site-footer__payment-icons">
-        {% for type in shop.enabled_payment_types %}
-          {{ type | payment_type_svg_tag: class: 'payment-icon' }}
-        {% endfor %}
-      </div>
-    {% endif %}
+    {% assign payment_icons = 'shopify_pay,apple_pay,google_pay,visa,master,american_express,discover,diners_club,jcb,paypal' | split: ',' %}
+    <div class="site-footer__payment-icons">
+      {% for type in payment_icons %}
+        {{ type | payment_type_svg_tag: class: 'payment-icon' }}
+      {% endfor %}
+    </div>
 
     <div class="site-footer__row site-footer__bottom">
       <p>&copy; {{ 'now' | date: '%Y' }} {{ shop.name }}</p>
