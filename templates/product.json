@@ -3,7 +3,15 @@
     "main": {
       "type": "main-product",
       "settings": {}
+    },
+    "shop-all-carousel": {
+      "type": "shop-all-carousel",
+      "settings": {
+        "heading": "Shop all",
+        "subheading": "",
+        "products_to_show": 8
+      }
     }
   },
-  "order": ["main"]
+  "order": ["main", "shop-all-carousel"]
 }

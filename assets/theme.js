@@ -161,6 +161,10 @@ function initProductForm() {
         b.setAttribute('aria-pressed', isSelected);
       });
 
+      var option = group.closest('.product-form__option');
+      var selectedLabel = option ? option.querySelector('[data-selected-label]') : null;
+      if (selectedLabel) selectedLabel.textContent = btn.dataset.optionLabel || btn.dataset.optionValue;
+
       updateSelectedVariant();
     });
   });
@@ -190,10 +194,15 @@ function initProductForm() {
     if (priceEl) {
       var priceHtml = '<span class="now">' + formatMoney(variant.price) + '</span>';
       if (variant.compare_at_price > variant.price) {
-        priceHtml += '<span class="was">' + formatMoney(variant.compare_at_price) + '</span>';
+        var savePct = Math.round((variant.compare_at_price - variant.price) * 100 / variant.compare_at_price);
+        priceHtml += '<span class="was">' + formatMoney(variant.compare_at_price) + '</span>' +
+          '<span class="product__save">Save ' + savePct + '%</span>';
       }
       priceEl.innerHTML = priceHtml;
     }
+
+    var skuEl = document.getElementById('ProductSku');
+    if (skuEl && variant.sku) skuEl.textContent = variant.sku;
 
     if (addBtn) addBtn.disabled = !variant.available;
     if (addText) addText.textContent = variant.available ? 'Add to cart' : 'Sold out';

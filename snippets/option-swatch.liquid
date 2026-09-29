@@ -1,0 +1,27 @@
+{% comment %} Color dot for an option label; renders nothing for names it doesn't recognise. {% endcomment %}
+{%- assign swatch_key = label | downcase -%}
+{%- assign swatch_bg = '' -%}
+{%- if swatch_key contains 'silver' or swatch_key contains 'chrome' or swatch_key contains 'polished' -%}
+  {%- assign swatch_bg = 'linear-gradient(135deg, #fafafa 0%, #b9b9b9 45%, #6f6f6f 100%)' -%}
+{%- elsif swatch_key contains 'gold' -%}
+  {%- assign swatch_bg = 'linear-gradient(135deg, #fbe7a1 0%, #d1a53c 50%, #8c6a17 100%)' -%}
+{%- elsif swatch_key contains 'black' -%}
+  {%- assign swatch_bg = '#0d0d0d' -%}
+{%- elsif swatch_key contains 'white' -%}
+  {%- assign swatch_bg = '#f7f7f5' -%}
+{%- elsif swatch_key contains 'grey' or swatch_key contains 'gray' or swatch_key contains 'titanium' or swatch_key contains 'gunmetal' -%}
+  {%- assign swatch_bg = 'linear-gradient(135deg, #9b9b9b 0%, #5c5c5c 100%)' -%}
+{%- elsif swatch_key contains 'red' -%}
+  {%- assign swatch_bg = '#c7322b' -%}
+{%- elsif swatch_key contains 'blue' -%}
+  {%- assign swatch_bg = '#2459d4' -%}
+{%- elsif swatch_key contains 'green' -%}
+  {%- assign swatch_bg = '#2f8a3e' -%}
+{%- elsif swatch_key contains 'orange' -%}
+  {%- assign swatch_bg = '#e8722f' -%}
+{%- elsif swatch_key contains 'purple' -%}
+  {%- assign swatch_bg = '#7b3fe4' -%}
+{%- endif -%}
+{%- if swatch_bg != '' -%}
+  <span class="option-value__swatch" style="background: {{ swatch_bg }};" aria-hidden="true"></span>
+{%- endif -%}
