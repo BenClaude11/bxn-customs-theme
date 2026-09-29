@@ -1,0 +1,112 @@
+<div class="product container">
+  <div class="product__gallery">
+    {% if product.media.size > 0 %}
+      <div class="product__main-image" id="ProductMainImage">
+        <img
+          src="{{ product.selected_or_first_available_variant.featured_image | default: product.featured_image | image_url: width: 900 }}"
+          alt="{{ product.featured_image.alt | escape }}"
+          id="ProductMainImageTag"
+          width="900"
+          height="{{ 900 | divided_by: product.featured_image.aspect_ratio }}"
+        >
+      </div>
+      {% if product.media.size > 1 %}
+        <div class="product__thumbnails">
+          {% for media in product.media %}
+            <button
+              class="product__thumbnail{% if forloop.first %} is-active{% endif %}"
+              data-image-url="{{ media.preview_image | image_url: width: 900 }}"
+              aria-label="Show image {{ forloop.index }}"
+            >
+              <img src="{{ media.preview_image | image_url: width: 160 }}" alt="" width="80" height="80">
+            </button>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% else %}
+      <div class="product__main-image">
+        {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="product__info">
+    {% if product.type != blank %}
+      <p class="product__eyebrow">{{ product.type }}</p>
+    {% endif %}
+
+    <h1 class="product__title">{{ product.title }}</h1>
+
+    <p class="product__price" id="ProductPrice">
+      {% if product.selected_or_first_available_variant.compare_at_price > product.selected_or_first_available_variant.price %}
+        <span class="now">{{ product.selected_or_first_available_variant.price | money }}</span>
+        <span class="was">{{ product.selected_or_first_available_variant.compare_at_price | money }}</span>
+      {% else %}
+        <span class="now">{{ product.selected_or_first_available_variant.price | default: product.price | money }}</span>
+      {% endif %}
+    </p>
+
+    {% form 'product', product, id: 'ProductForm', class: 'product-form', data-product-url: product.url %}
+      <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}" id="ProductSelectedVariantId">
+
+      {% unless product.has_only_default_variant %}
+        {% for option in product.options_with_values %}
+          <div class="product-form__option">
+            <label class="product-form__option-label">{{ option.name }}</label>
+            <div class="product-form__option-values" data-option-index="{{ forloop.index0 }}" role="group" aria-label="{{ option.name }}">
+              {% for value in option.values %}
+                <button
+                  type="button"
+                  class="option-value{% if option.selected_value == value %} is-selected{% endif %}"
+                  data-option-value="{{ value | escape }}"
+                  aria-pressed="{% if option.selected_value == value %}true{% else %}false{% endif %}"
+                >
+                  {{ value }}
+                </button>
+              {% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+      {% endunless %}
+
+      <div class="product-form__quantity">
+        <label class="product-form__option-label" for="Quantity">Quantity</label>
+        <div class="quantity-selector">
+          <button type="button" class="quantity-selector__btn" id="QuantityDecrease" aria-label="Decrease quantity">&minus;</button>
+          <input type="number" name="quantity" id="Quantity" value="1" min="1" class="quantity-selector__input" aria-label="Quantity">
+          <button type="button" class="quantity-selector__btn" id="QuantityIncrease" aria-label="Increase quantity">&plus;</button>
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        name="add"
+        class="button button--primary button--full product-form__submit"
+        id="AddToCartButton"
+        {% unless product.selected_or_first_available_variant.available %}disabled{% endunless %}
+      >
+        <span id="AddToCartText">
+          {% if product.selected_or_first_available_variant.available %}Add to cart{% else %}Sold out{% endif %}
+        </span>
+      </button>
+    {% endform %}
+
+    {% if product.description != blank %}
+      <div class="product__description">
+        {{ product.description }}
+      </div>
+    {% endif %}
+
+    {% if product.selected_or_first_available_variant.sku != blank %}
+      <p class="product__sku">SKU: {{ product.selected_or_first_available_variant.sku }}</p>
+    {% endif %}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Product information",
+  "settings": [],
+  "blocks": []
+}
+{% endschema %}

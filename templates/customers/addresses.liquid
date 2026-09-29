@@ -1,0 +1,47 @@
+<div class="container account-page">
+  <h1>Your addresses</h1>
+
+  {% form 'customer_address', customer.new_address %}
+    <h2>Add a new address</h2>
+    <label for="AddressFirstName">First name</label>
+    <input type="text" id="AddressFirstName" name="address[first_name]" value="{{ form.first_name }}">
+
+    <label for="AddressLastName">Last name</label>
+    <input type="text" id="AddressLastName" name="address[last_name]" value="{{ form.last_name }}">
+
+    <label for="AddressAddress1">Address</label>
+    <input type="text" id="AddressAddress1" name="address[address1]" value="{{ form.address1 }}">
+
+    <label for="AddressCity">City</label>
+    <input type="text" id="AddressCity" name="address[city]" value="{{ form.city }}">
+
+    <label for="AddressZip">Postal / Zip code</label>
+    <input type="text" id="AddressZip" name="address[zip]" value="{{ form.zip }}">
+
+    <label for="AddressCountry">Country</label>
+    <input type="text" id="AddressCountry" name="address[country]" value="{{ form.country }}">
+
+    <label for="AddressPhone">Phone</label>
+    <input type="tel" id="AddressPhone" name="address[phone]" value="{{ form.phone }}">
+
+    <button type="submit" class="button button--primary">Add address</button>
+  {% endform %}
+
+  <h2>Saved addresses</h2>
+  {% if customer.addresses.size == 0 %}
+    <p>You don't have any saved addresses.</p>
+  {% else %}
+    <div class="address-list">
+      {% for address in customer.addresses %}
+        <div class="address-list__item">
+          <p>{{ address | format_address }}</p>
+          {% form 'customer_address', address %}
+            <button type="submit" data-confirm-delete name="_method" value="delete" class="link-button">Delete</button>
+          {% endform %}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <a href="{{ routes.account_url }}">&larr; Back to account</a>
+</div>

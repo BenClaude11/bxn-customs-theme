@@ -1,0 +1,47 @@
+<header class="site-header">
+  <div class="site-header__inner container">
+    <button class="site-header__menu-toggle" id="MobileMenuToggle" aria-label="Menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+
+    <a href="{{ routes.root_url }}" class="site-header__logo">
+      {{ section.settings.logo_text | default: shop.name }}
+    </a>
+
+    <nav class="site-header__nav" id="SiteNav">
+      {% for link in linklists[section.settings.menu].links %}
+        <a href="{{ link.url }}" class="site-header__nav-link">{{ link.title }}</a>
+      {% endfor %}
+    </nav>
+
+    <div class="site-header__actions">
+      <a href="{{ routes.account_url }}" class="site-header__icon-link" aria-label="Account">
+        {% render 'icon-account' %}
+      </a>
+      <a href="{{ routes.cart_url }}" class="site-header__icon-link site-header__cart-link" id="CartIconLink" aria-label="Cart">
+        {% render 'icon-cart' %}
+        <span class="site-header__cart-count" id="CartCount">{% if cart.item_count > 0 %}{{ cart.item_count }}{% endif %}</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+{% schema %}
+{
+  "name": "Header",
+  "settings": [
+    {
+      "type": "text",
+      "id": "logo_text",
+      "label": "Logo text",
+      "default": "BXN Customs"
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Menu",
+      "default": "main-menu"
+    }
+  ]
+}
+{% endschema %}

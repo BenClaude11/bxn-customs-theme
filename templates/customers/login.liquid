@@ -1,0 +1,43 @@
+<div class="container account-page">
+  <div id="LoginForm">
+    <h1>Login</h1>
+    {% form 'customer_login' %}
+      {% if form.errors %}
+        <div class="form-errors" role="alert">{{ form.errors | default_errors }}</div>
+      {% endif %}
+
+      <label for="CustomerEmail">Email</label>
+      <input type="email" name="customer[email]" id="CustomerEmail" autocomplete="email" required>
+
+      {% if form.password_needed %}
+        <label for="CustomerPassword">Password</label>
+        <input type="password" name="customer[password]" id="CustomerPassword" autocomplete="current-password" required>
+      {% endif %}
+
+      <button type="submit" class="button button--primary">Sign in</button>
+
+      <div class="account-page__links">
+        <button type="button" class="link-button" id="ShowRecoverForm">Forgot your password?</button>
+        <a href="{{ routes.account_register_url }}">Create account</a>
+      </div>
+    {% endform %}
+  </div>
+
+  <div id="RecoverForm" class="account-page__recover" hidden>
+    <h2>Reset your password</h2>
+    <p>We'll send you an email to reset your password.</p>
+    {% form 'recover_customer_password' %}
+      {% if form.errors %}
+        <div class="form-errors" role="alert">{{ form.errors | default_errors }}</div>
+      {% endif %}
+      {% if form.posted_successfully? %}
+        <p class="form-success" role="alert">If that email is on file, a reset link is on its way.</p>
+      {% else %}
+        <label for="RecoverEmail">Email</label>
+        <input type="email" name="email" id="RecoverEmail" autocomplete="email" required>
+        <button type="submit" class="button button--primary">Send reset link</button>
+      {% endif %}
+    {% endform %}
+    <button type="button" class="link-button" id="HideRecoverForm">Back to login</button>
+  </div>
+</div>

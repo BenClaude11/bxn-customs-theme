@@ -1,0 +1,29 @@
+{% comment %}
+  Renders a single cart line item server-side. Expects `item` (a line from cart.items).
+  Used by templates/cart.liquid (the full cart page). The cart drawer renders its
+  own line items client-side in assets/cart.js since it updates via the /cart.js AJAX API.
+{% endcomment %}
+<div class="cart-item" data-line-key="{{ item.key }}">
+  <div class="cart-item__image">
+    {% if item.image %}
+      <img src="{{ item.image | image_url: width: 180 }}" alt="{{ item.title | escape }}" width="90" height="90">
+    {% else %}
+      {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+    {% endif %}
+  </div>
+  <div class="cart-item__details">
+    <a href="{{ item.url }}" class="cart-item__title">{{ item.product.title }}</a>
+    {% unless item.variant.title == 'Default Title' %}
+      <p class="cart-item__variant">{{ item.variant.title }}</p>
+    {% endunless %}
+    <div class="cart-item__qty">
+      <button class="cart-item__qty-btn" data-cart-qty-decrease aria-label="Decrease quantity of {{ item.product.title | escape }}">&minus;</button>
+      <span class="cart-item__qty-value">{{ item.quantity }}</span>
+      <button class="cart-item__qty-btn" data-cart-qty-increase aria-label="Increase quantity of {{ item.product.title | escape }}">&plus;</button>
+    </div>
+  </div>
+  <div class="cart-item__price-remove">
+    <span class="cart-item__price">{{ item.final_line_price | money }}</span>
+    <button class="cart-item__remove" data-cart-remove aria-label="Remove {{ item.product.title | escape }} from cart">Remove</button>
+  </div>
+</div>

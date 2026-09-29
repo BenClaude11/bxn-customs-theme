@@ -1,0 +1,11 @@
+{
+  "current": {
+    "color_background": "#15130f",
+    "color_text": "#f4efe4",
+    "color_accent": "#e8722f",
+    "color_accent_text": "#1c1108",
+    "color_border": "#332d24",
+    "font_body": "inter_n4",
+    "font_heading": "anton_n4"
+  }
+}

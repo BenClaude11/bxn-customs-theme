@@ -1,0 +1,26 @@
+{% comment %}
+  Renders a product card. Expects `card_product` (a product object).
+{% endcomment %}
+<a href="{{ card_product.url }}" class="product-card">
+  <div class="product-card__image">
+    {% if card_product.featured_image %}
+      <img
+        src="{{ card_product.featured_image | image_url: width: 600 }}"
+        alt="{{ card_product.featured_image.alt | escape }}"
+        loading="lazy"
+        width="600"
+        height="{{ 600 | divided_by: card_product.featured_image.aspect_ratio }}"
+      >
+    {% else %}
+      {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+    {% endif %}
+  </div>
+  <p class="product-card__title">{{ card_product.title }}</p>
+  <p class="product-card__price">
+    {%- if card_product.price_varies -%}
+      From {{ card_product.price_min | money }}
+    {%- else -%}
+      {{ card_product.price | money }}
+    {%- endif -%}
+  </p>
+</a>

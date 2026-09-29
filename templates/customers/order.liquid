@@ -1,0 +1,30 @@
+<div class="container account-page">
+  <h1>Order {{ order.name }}</h1>
+  <p>Placed on {{ order.created_at | date: '%B %d, %Y' }}</p>
+  <p>Payment status: {{ order.financial_status_label }}</p>
+  <p>Fulfillment status: {{ order.fulfillment_status_label }}</p>
+
+  <table class="account-orders">
+    <thead>
+      <tr><th>Product</th><th>Quantity</th><th>Price</th></tr>
+    </thead>
+    <tbody>
+      {% for line_item in order.line_items %}
+        <tr>
+          <td>{{ line_item.title }}</td>
+          <td>{{ line_item.quantity }}</td>
+          <td>{{ line_item.final_line_price | money }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p class="order-total">Total: {{ order.total_price | money }}</p>
+
+  <h2>Shipping address</h2>
+  {% if order.shipping_address %}
+    <p>{{ order.shipping_address | format_address }}</p>
+  {% endif %}
+
+  <a href="{{ routes.account_url }}">&larr; Back to account</a>
+</div>

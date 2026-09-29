@@ -1,0 +1,79 @@
+<div class="hero">
+  <div class="hero__image">
+    {% if section.settings.show_video %}
+      <video class="hero__video" autoplay muted loop playsinline
+        {% if section.settings.image %}poster="{{ section.settings.image | image_url: width: 1800 }}"{% endif %}>
+        <source src="{{ 'wheelie-clip.mp4' | asset_url }}" type="video/mp4">
+      </video>
+    {% elsif section.settings.image %}
+      <img
+        src="{{ section.settings.image | image_url: width: 1800 }}"
+        alt="{{ section.settings.image.alt | escape }}"
+        width="1800"
+        height="{{ 1800 | divided_by: section.settings.image.aspect_ratio }}"
+      >
+    {% else %}
+      {{ 'lifestyle-1' | placeholder_svg_tag: 'placeholder-svg placeholder-svg--hero' }}
+    {% endif %}
+  </div>
+  <div class="hero__content">
+    <h1 class="hero__heading">{{ section.settings.heading | newline_to_br }}</h1>
+    {% if section.settings.subheading != blank %}
+      <p class="hero__subheading">{{ section.settings.subheading }}</p>
+    {% endif %}
+    {% if section.settings.button_label != blank %}
+      <a href="{{ section.settings.button_link | default: '/collections/all' }}" class="button button--hero">
+        {{ section.settings.button_label }} <span aria-hidden="true">&rarr;</span>
+      </a>
+    {% endif %}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Hero",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_video",
+      "label": "Show background video",
+      "default": true,
+      "info": "Uses the bundled placeholder clip. Turn off to fall back to the image below."
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image",
+      "info": "Used as the video poster frame, or as the full background if video is off."
+    },
+    {
+      "type": "textarea",
+      "id": "heading",
+      "label": "Heading",
+      "info": "Each line becomes its own line on the page.",
+      "default": "Fine tune your ride."
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Shop all"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,72 @@
+<footer class="site-footer">
+  <div class="container site-footer__inner">
+    <div class="site-footer__row">
+      <div class="site-footer__brand">
+        {% if section.settings.business_email != blank %}
+          <p class="site-footer__contact"><a href="mailto:{{ section.settings.business_email }}">{{ section.settings.business_email }}</a></p>
+        {% endif %}
+        {% if section.settings.business_phone != blank %}
+          <p class="site-footer__contact"><a href="tel:{{ section.settings.business_phone }}">{{ section.settings.business_phone }}</a></p>
+        {% endif %}
+        {% if section.settings.business_address != blank %}
+          <p class="site-footer__contact">{{ section.settings.business_address }}</p>
+        {% endif %}
+      </div>
+
+      <nav class="site-footer__links">
+        {% for link in linklists[section.settings.menu].links %}
+          <a href="{{ link.url }}">{{ link.title }}</a>
+        {% endfor %}
+      </nav>
+    </div>
+
+    {% if shop.enabled_payment_types.size > 0 %}
+      <div class="site-footer__payment-icons">
+        {% for type in shop.enabled_payment_types %}
+          {{ type | payment_type_svg_tag: class: 'payment-icon' }}
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="site-footer__row site-footer__bottom">
+      <p>&copy; {{ 'now' | date: '%Y' }} {{ shop.name }}</p>
+      <nav class="site-footer__policies">
+        {% for policy in shop.policies %}
+          <a href="{{ policy.url }}">{{ policy.title }}</a>
+        {% endfor %}
+      </nav>
+    </div>
+  </div>
+</footer>
+
+{% schema %}
+{
+  "name": "Footer",
+  "settings": [
+    {
+      "type": "text",
+      "id": "business_email",
+      "label": "Business email",
+      "info": "Shown in the footer. Leave blank to hide."
+    },
+    {
+      "type": "text",
+      "id": "business_phone",
+      "label": "Business phone",
+      "info": "Shown in the footer. Leave blank to hide."
+    },
+    {
+      "type": "text",
+      "id": "business_address",
+      "label": "Business address",
+      "info": "Required in some regions for consumer-facing stores. Shown in the footer. Leave blank to hide."
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Menu",
+      "default": "footer"
+    }
+  ]
+}
+{% endschema %}

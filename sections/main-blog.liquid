@@ -1,0 +1,21 @@
+<div class="container">
+  <h1 class="collection__heading">{{ blog.title }}</h1>
+  <div class="blog-list">
+    {% paginate blog.articles by 10 %}
+      {% for article in blog.articles %}
+        <a href="{{ article.url }}" class="blog-list__item">
+          <h2>{{ article.title }}</h2>
+          <p>{{ article.published_at | date: '%B %d, %Y' }}</p>
+          <p>{{ article.excerpt_or_content | strip_html | truncate: 160 }}</p>
+        </a>
+      {% endfor %}
+      {% if paginate.pages > 1 %}
+        <div class="pagination">{{ paginate | default_pagination }}</div>
+      {% endif %}
+    {% endpaginate %}
+  </div>
+</div>
+
+{% schema %}
+{ "name": "Blog", "settings": [] }
+{% endschema %}

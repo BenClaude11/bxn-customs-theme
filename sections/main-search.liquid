@@ -1,0 +1,28 @@
+<div class="container">
+  <h1 class="collection__heading">Search results</h1>
+
+  <form action="{{ routes.search_url }}" method="get" class="search-form">
+    <input type="search" name="q" value="{{ search.terms | escape }}" placeholder="Search products" aria-label="Search">
+    <input type="hidden" name="type" value="product">
+    <button type="submit" class="button button--primary">Search</button>
+  </form>
+
+  {% if search.performed %}
+    <p class="search__results-count">{{ search.results_count }} result{% unless search.results_count == 1 %}s{% endunless %} for "{{ search.terms }}"</p>
+
+    <div class="product-grid">
+      {% for item in search.results %}
+        {% if item.object_type == 'product' %}
+          {% render 'product-card', card_product: item %}
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+
+{% schema %}
+{
+  "name": "Search",
+  "settings": []
+}
+{% endschema %}

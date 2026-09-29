@@ -1,0 +1,63 @@
+{% if section.settings.promo_code != blank %}
+  <div class="sale-banner" id="SaleCountdown" data-end="{{ section.settings.sale_end }}">
+    <div class="container sale-banner__inner">
+      <p class="sale-banner__heading">{{ section.settings.heading }}</p>
+      <div class="sale-banner__right">
+        <p class="sale-banner__code">
+          Use code <span class="sale-banner__code-value">{{ section.settings.promo_code }}</span> at checkout
+        </p>
+        {% if section.settings.sale_end != blank %}
+          <div class="sale-banner__countdown">
+            <div class="sale-banner__countdown-box">
+              <span id="CountdownHours">00</span>
+              <small>hours</small>
+            </div>
+            <div class="sale-banner__countdown-box">
+              <span id="CountdownMinutes">00</span>
+              <small>minutes</small>
+            </div>
+            <div class="sale-banner__countdown-box">
+              <span id="CountdownSeconds">00</span>
+              <small>seconds</small>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Sale banner",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "This banner only shows once a promo code is entered below. Make sure the code actually exists under Discounts in Shopify Admin before publishing, or this advertises a code that doesn't work."
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Sale"
+    },
+    {
+      "type": "text",
+      "id": "promo_code",
+      "label": "Promo code",
+      "info": "Must match a real active discount code in Shopify Admin → Discounts. Leave blank to hide this banner entirely."
+    },
+    {
+      "type": "text",
+      "id": "sale_end",
+      "label": "Sale end date/time",
+      "info": "Format: YYYY-MM-DDTHH:MM (e.g. 2026-12-25T00:00). Leave blank to hide the countdown."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Sale banner"
+    }
+  ]
+}
+{% endschema %}

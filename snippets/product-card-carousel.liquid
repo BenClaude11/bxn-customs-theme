@@ -1,0 +1,46 @@
+{% comment %}
+  Renders one carousel card. Pass `card_product` for a real product card;
+  omit it for a "Coming soon" placeholder card. The section renders this
+  snippet's full output twice back-to-back so the click-to-advance carousel
+  can loop seamlessly (see assets/theme.js initShopCarousel).
+{% endcomment %}
+{% if card_product %}
+  <a href="{{ card_product.url }}" class="carousel-card">
+    {% if card_product.compare_at_price > card_product.price %}
+      {% assign sc_pct = card_product.compare_at_price | minus: card_product.price | times: 100.0 | divided_by: card_product.compare_at_price | round %}
+      <span class="carousel-card__badge">Save {{ sc_pct }}%</span>
+    {% endif %}
+    <div class="carousel-card__image">
+      {% if card_product.featured_image %}
+        <img
+          src="{{ card_product.featured_image | image_url: width: 400 }}"
+          alt="{{ card_product.featured_image.alt | escape }}"
+          loading="lazy"
+          width="400"
+          height="{{ 400 | divided_by: card_product.featured_image.aspect_ratio }}"
+        >
+      {% else %}
+        {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+      {% endif %}
+    </div>
+    <p class="carousel-card__name">{{ card_product.title }}</p>
+    <p class="carousel-card__price">
+      {%- if card_product.price_varies -%}
+        <span class="now">From {{ card_product.price_min | money }}</span>
+      {%- else -%}
+        <span class="now">{{ card_product.price | money }}</span>
+        {%- if card_product.compare_at_price > card_product.price -%}
+          <span class="was">{{ card_product.compare_at_price | money }}</span>
+        {%- endif -%}
+      {%- endif -%}
+    </p>
+    <span class="carousel-card__reveal"><span class="cta">View product</span></span>
+  </a>
+{% else %}
+  <div class="carousel-card carousel-card--placeholder">
+    <div class="carousel-card__image">
+      {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+    </div>
+    <p class="carousel-card__name">Coming soon</p>
+  </div>
+{% endif %}

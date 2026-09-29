@@ -1,0 +1,57 @@
+<div class="featured-collection container">
+  {% if section.settings.heading != blank %}
+    <h2 class="featured-collection__heading">{{ section.settings.heading }}</h2>
+  {% endif %}
+
+  <div class="product-grid">
+    {% for block in section.blocks %}
+      {% assign card_product = block.settings.product %}
+      {% if card_product != blank %}
+        {% render 'product-card', card_product: card_product %}
+      {% else %}
+        <div class="product-card product-card--placeholder">
+          <div class="product-card__image">
+            {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+          </div>
+          <p class="product-card__title">Select a product</p>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Featured products",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "product",
+      "name": "Product",
+      "settings": [
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Product"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 8,
+  "presets": [
+    {
+      "name": "Featured products",
+      "blocks": [
+        { "type": "product" },
+        { "type": "product" }
+      ]
+    }
+  ]
+}
+{% endschema %}

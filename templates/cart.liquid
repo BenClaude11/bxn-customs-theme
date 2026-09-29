@@ -1,0 +1,25 @@
+<div class="cart-page container">
+  <h1>Your cart</h1>
+
+  {% if cart.item_count == 0 %}
+    <p>Your cart is empty.</p>
+    <a href="{{ routes.all_products_collection_url }}" class="button button--primary">Continue shopping</a>
+  {% else %}
+    {% form 'cart', cart, class: 'cart-page__form' %}
+      <div class="cart-page__items" id="CartPageItems">
+        {% for item in cart.items %}
+          {% render 'cart-line-item', item: item %}
+        {% endfor %}
+      </div>
+
+      <div class="cart-page__summary">
+        <div class="cart-page__subtotal">
+          <span>Subtotal</span>
+          <span>{{ cart.total_price | money }}</span>
+        </div>
+        <p class="cart-page__note">Shipping and taxes calculated at checkout.</p>
+        <button type="submit" name="checkout" class="button button--primary button--full">Checkout</button>
+      </div>
+    {% endform %}
+  {% endif %}
+</div>

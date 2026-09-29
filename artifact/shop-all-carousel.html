@@ -1,0 +1,418 @@
+<!doctype html>
+<title>Shop All Carousel</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --bg:#f4efe4;
+    --card:#fffdf9;
+    --ink:#17140f;
+    --ink-soft:#6b6355;
+    --line:rgba(23,20,15,0.12);
+    --accent:#d8531c;
+    --accent-ink:#fff6ee;
+    --shadow: 0 18px 40px -18px rgba(23,20,15,0.35);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#15130f;
+      --card:#211d17;
+      --ink:#f4efe4;
+      --ink-soft:#a89f8d;
+      --line:rgba(244,239,228,0.12);
+      --accent:#e8722f;
+      --accent-ink:#1c1108;
+      --shadow: 0 18px 40px -18px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#15130f;
+    --card:#211d17;
+    --ink:#f4efe4;
+    --ink-soft:#a89f8d;
+    --line:rgba(244,239,228,0.12);
+    --accent:#e8722f;
+    --accent-ink:#1c1108;
+    --shadow: 0 18px 40px -18px rgba(0,0,0,0.6);
+  }
+
+  *{ box-sizing:border-box; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+  }
+
+  /* --- hero --- */
+  .hero{
+    position:relative;
+    min-height:min(78vh, 620px);
+    display:flex;
+    align-items:flex-end;
+    overflow:hidden;
+  }
+  .hero video{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    object-fit:cover;
+  }
+  .hero::after{
+    content:'';
+    position:absolute; inset:0;
+    background:linear-gradient(180deg, rgba(10,8,5,0.15), rgba(10,8,5,0.4) 60%, rgba(10,8,5,0.72));
+  }
+  .hero-inner{
+    position:relative;
+    z-index:1;
+    width:100%;
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 20px 64px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    gap:28px;
+  }
+  .hero h1{
+    font-family:'Anton',sans-serif;
+    font-weight:400;
+    color:#fff6ee;
+    font-size:clamp(2.4rem, 6.4vw, 4.6rem);
+    line-height:1.03;
+    letter-spacing:0.005em;
+    text-transform:uppercase;
+    margin:0;
+    text-wrap:balance;
+  }
+  .hero-cta{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    background:#fffdf9;
+    color:#17140f;
+    border-radius:4px;
+    padding:14px 26px;
+    font-family:'Inter',sans-serif;
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    text-decoration:none;
+    transition:transform .18s ease, box-shadow .18s ease;
+  }
+  .hero-cta:hover{ transform:translateY(-2px); box-shadow:0 14px 28px -12px rgba(0,0,0,0.5); }
+  .hero-cta svg{ width:16px; height:16px; }
+
+  /* --- shop all section --- */
+  .shop-all{
+    max-width:1180px;
+    margin:0 auto;
+    padding:56px 20px 72px;
+    display:flex;
+    flex-direction:column;
+    gap:28px;
+  }
+
+  .carousel{
+    position:relative;
+    overflow:hidden;
+    margin-inline: -20px;
+    padding-inline: 20px;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 48px, #000 calc(100% - 48px), transparent 100%);
+            mask-image: linear-gradient(90deg, transparent 0, #000 48px, #000 calc(100% - 48px), transparent 100%);
+  }
+  .track{
+    display:flex;
+    gap:22px;
+    width:max-content;
+    padding-block: 14px 10px;
+    transition: transform 0.5s cubic-bezier(.2,.8,.2,1);
+    will-change: transform;
+  }
+  .track.is-snapping{ transition:none; }
+  @media (prefers-reduced-motion: reduce){
+    .track{ transition:none; }
+  }
+
+  .advance-row{
+    display:flex;
+    justify-content:center;
+    gap:14px;
+  }
+  .advance{
+    width:50px; height:50px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:var(--card);
+    color:var(--ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition: background .2s ease, color .2s ease, border-color .2s ease, transform .15s ease;
+  }
+  .advance:hover{ background:var(--accent); color:var(--accent-ink); border-color:transparent; }
+  .advance:active{ transform:scale(0.94); }
+  .advance:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+  .advance:disabled{ opacity:0.45; cursor:default; }
+
+  .card{
+    position:relative;
+    flex:0 0 auto;
+    width:216px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:22px 20px 18px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    color:inherit;
+    text-decoration:none;
+    transform: translateY(0) scale(1);
+    transition: transform .32s cubic-bezier(.2,.8,.2,1), box-shadow .32s ease, border-color .32s ease;
+    z-index:1;
+  }
+  .card:hover, .card:focus-visible{
+    transform: translateY(-10px) scale(1.09);
+    box-shadow: var(--shadow);
+    border-color: transparent;
+    z-index:5;
+    outline:none;
+  }
+
+  .card .icon{
+    width:100%;
+    aspect-ratio:1.15;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--ink);
+    overflow:hidden;
+    border-radius:2px;
+  }
+  .card .icon svg{ width:64%; height:64%; }
+  .card .icon img{ width:100%; height:100%; object-fit:cover; }
+  .card.placeholder .icon{ background: color-mix(in srgb, var(--ink) 6%, transparent); color:var(--ink-soft); }
+
+  .card .name{
+    font-size:13.5px;
+    font-weight:600;
+    line-height:1.35;
+    min-height:2.7em;
+  }
+  .card.placeholder .name{ color:var(--ink-soft); font-weight:500; }
+
+  .card .price{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    font-variant-numeric: tabular-nums;
+  }
+  .card .price .now{ font-size:15px; font-weight:700; color:var(--accent); }
+  .card .price .was{ font-size:12px; color:var(--ink-soft); text-decoration:line-through; }
+
+  .card .reveal{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    max-height:0;
+    opacity:0;
+    overflow:hidden;
+    transition: max-height .32s ease, opacity .28s ease .04s;
+  }
+  .card:hover .reveal, .card:focus-visible .reveal{
+    max-height:24px;
+    opacity:1;
+  }
+  .card .reveal .cta{
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink);
+  }
+  .card .reveal .cta::after{ content:' →'; }
+
+  .statusbar{
+    position:fixed;
+    left:14px;
+    bottom:14px;
+    background:var(--ink);
+    color:var(--bg);
+    font-size:11px;
+    font-family:'Inter',monospace;
+    padding:6px 10px;
+    border-radius:3px;
+    opacity:0;
+    transform:translateY(6px);
+    transition:opacity .18s ease, transform .18s ease;
+    pointer-events:none;
+    max-width:70vw;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    z-index:20;
+  }
+  .statusbar.show{ opacity:1; transform:translateY(0); }
+
+</style>
+
+<section class="hero">
+  <video autoplay muted loop playsinline>
+    <source src="wheelie-clip.mp4" type="video/mp4">
+  </video>
+  <div class="hero-inner">
+    <h1>Fine tune your ride.</h1>
+    <a class="hero-cta" href="#shop-all">
+      Shop all
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+    </a>
+  </div>
+</section>
+
+<section class="shop-all" id="shop-all">
+  <div class="carousel">
+    <div class="track" id="track"><!-- items injected by JS, tripled for a seamless loop in both directions --></div>
+  </div>
+
+  <div class="advance-row">
+    <button class="advance" id="prevBtn" aria-label="Show previous products" type="button">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M15 6l-6 6 6 6"/>
+      </svg>
+    </button>
+    <button class="advance" id="nextBtn" aria-label="Show next products" type="button">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M9 6l6 6-6 6"/>
+      </svg>
+    </button>
+  </div>
+</section>
+
+<div class="statusbar" id="statusbar"></div>
+
+<script>
+  // Two real BXN Customs products; the rest are open slots for products
+  // still being photographed, so the shelf never looks empty as the
+  // catalog grows.
+  const products = [
+    {
+      name: 'Dirodi CNC Surron Throttle',
+      price: 89.00,
+      image: 'images/throttle.png',
+      preview: 'Dirodi CNC Surron Throttle — $89.00'
+    },
+    {
+      name: 'BXN Customs Wireless Speed Limiter',
+      price: 59.00,
+      image: 'images/speed-limiter.png',
+      preview: 'BXN Customs Wireless Speed Limiter — $59.00'
+    },
+    { placeholder: true },
+    { placeholder: true },
+    { placeholder: true },
+    { placeholder: true },
+    { placeholder: true },
+    { placeholder: true },
+  ];
+
+  const placeholderIcon = `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="14" y="18" width="36" height="28" rx="3"/>
+    <path d="M14 28 h36 M26 18 v28"/>
+  </svg>`;
+
+  function cardHTML(p){
+    if (p.placeholder) {
+      return `
+        <div class="card placeholder" tabindex="0">
+          <span class="icon">${placeholderIcon}</span>
+          <span class="name">Coming soon</span>
+        </div>`;
+    }
+    return `
+      <a class="card" href="#" data-preview="${p.preview}">
+        <span class="icon"><img src="${p.image}" alt="${p.name}" loading="lazy"></span>
+        <span class="name">${p.name}</span>
+        <span class="price">
+          <span class="now">$${p.price.toFixed(2)}</span>
+        </span>
+        <span class="reveal"><span class="cta">View product</span></span>
+      </a>`;
+  }
+
+  const track = document.getElementById('track');
+  const statusbar = document.getElementById('statusbar');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
+  // Render the set three times back-to-back, starting the view on the
+  // middle copy. That leaves a full spare set on either side, so both
+  // arrows can step indefinitely: whichever edge we reach, we snap back
+  // by exactly one set-width with no transition — invisible, since the
+  // neighbouring set is identical.
+  const setHTML = products.map(cardHTML).join('');
+  track.innerHTML = setHTML + setHTML + setHTML;
+
+  track.addEventListener('mouseover', (e) => {
+    const card = e.target.closest('.card');
+    if (!card || !card.dataset.preview) return;
+    statusbar.textContent = card.dataset.preview;
+    statusbar.classList.add('show');
+  });
+  track.addEventListener('mouseout', (e) => {
+    if (e.target.closest('.card')) statusbar.classList.remove('show');
+  });
+  track.addEventListener('click', (e) => {
+    if (e.target.closest('.card:not(.placeholder)')) e.preventDefault();
+  });
+
+  const setWidth = track.scrollWidth / 3;
+  let offset = -setWidth;
+  track.style.transform = `translateX(${offset}px)`;
+
+  // Rapid clicking used to queue up faster than the reset logic could keep
+  // pace, so the offset ran past the spare set on either side with nothing
+  // there to show — the strip appeared to "vanish". Locking input for the
+  // duration of each step's transition means offset only ever moves by
+  // exactly one card at a time, so the boundary check below is always
+  // correcting from a known, valid position.
+  let isAnimating = false;
+  const TRANSITION_MS = 500;
+
+  function step(direction){
+    if (isAnimating) return;
+    isAnimating = true;
+    prevBtn.disabled = true;
+    nextBtn.disabled = true;
+
+    // direction: 1 = next (move left), -1 = prev (move right)
+    const card = track.querySelector('.card');
+    const gap = 22;
+    const cardStep = card ? card.getBoundingClientRect().width + gap : 238;
+
+    offset -= direction * cardStep;
+    track.style.transform = `translateX(${offset}px)`;
+
+    setTimeout(() => {
+      const pastFarEdge = offset <= -2 * setWidth;
+      const pastNearEdge = offset >= 0;
+      if (pastFarEdge || pastNearEdge) {
+        track.classList.add('is-snapping');
+        offset += pastFarEdge ? setWidth : -setWidth;
+        track.style.transform = `translateX(${offset}px)`;
+        track.offsetHeight; // force reflow so the snap applies with no transition
+        requestAnimationFrame(() => track.classList.remove('is-snapping'));
+      }
+      isAnimating = false;
+      prevBtn.disabled = false;
+      nextBtn.disabled = false;
+    }, TRANSITION_MS);
+  }
+
+  nextBtn.addEventListener('click', () => step(1));
+  prevBtn.addEventListener('click', () => step(-1));
+</script>

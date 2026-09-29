@@ -1,0 +1,27 @@
+{
+  "sections": {
+    "hero": {
+      "type": "hero",
+      "settings": {}
+    },
+    "shop-all-carousel": {
+      "type": "shop-all-carousel",
+      "settings": {
+        "heading": "Shop all",
+        "collection": "frontpage",
+        "products_to_show": 8
+      }
+    },
+    "sale-banner": {
+      "type": "sale-banner",
+      "settings": {}
+    },
+    "reviews": {
+      "type": "reviews",
+      "blocks": {},
+      "block_order": [],
+      "settings": {}
+    }
+  },
+  "order": ["hero", "shop-all-carousel", "sale-banner", "reviews"]
+}
