@@ -8,6 +8,8 @@
     --color-accent: {{ settings.color_accent }};
     --color-accent-text: {{ settings.color_accent_text }};
     --color-border: {{ settings.color_border }};
+    --color-surface: color-mix(in srgb, var(--color-text) 6%, var(--color-background));
+    --color-muted: color-mix(in srgb, var(--color-text) 62%, var(--color-background));
     --font-body: {{ settings.font_body.family }}, {{ settings.font_body.fallback_families }};
     --font-heading: {{ settings.font_heading.family }}, {{ settings.font_heading.fallback_families }};
   }

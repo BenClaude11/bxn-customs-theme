@@ -1,24 +1,26 @@
-<div class="product container">
+{%- assign current_variant = product.selected_or_first_available_variant -%}
+<div class="product container product--gallery-{{ section.settings.gallery_style }}">
   <div class="product__gallery">
     {% if product.media.size > 0 %}
       <div class="product__main-image" id="ProductMainImage">
         <img
-          src="{{ product.selected_or_first_available_variant.featured_image | default: product.featured_image | image_url: width: 900 }}"
-          alt="{{ product.featured_image.alt | escape }}"
+          src="{{ current_variant.featured_image | default: product.featured_image | image_url: width: 1100 }}"
+          alt="{{ product.featured_image.alt | default: product.title | escape }}"
           id="ProductMainImageTag"
-          width="900"
-          height="{{ 900 | divided_by: product.featured_image.aspect_ratio }}"
+          width="1100"
+          height="{{ 1100 | divided_by: product.featured_image.aspect_ratio }}"
         >
       </div>
       {% if product.media.size > 1 %}
         <div class="product__thumbnails">
           {% for media in product.media %}
             <button
+              type="button"
               class="product__thumbnail{% if forloop.first %} is-active{% endif %}"
-              data-image-url="{{ media.preview_image | image_url: width: 900 }}"
+              data-image-url="{{ media.preview_image | image_url: width: 1100 }}"
               aria-label="Show image {{ forloop.index }}"
             >
-              <img src="{{ media.preview_image | image_url: width: 160 }}" alt="" width="80" height="80">
+              <img src="{{ media.preview_image | image_url: width: 200 }}" alt="" width="76" height="76" loading="lazy">
             </button>
           {% endfor %}
         </div>
@@ -31,6 +33,8 @@
   </div>
 
   <div class="product__info">
+    <a class="product__back" href="{{ routes.all_products_collection_url }}">&larr; Shop all</a>
+
     {% if product.type != blank %}
       <p class="product__eyebrow">{{ product.type }}</p>
     {% endif %}
@@ -38,67 +42,114 @@
     <h1 class="product__title">{{ product.title }}</h1>
 
     <p class="product__price" id="ProductPrice">
-      {% if product.selected_or_first_available_variant.compare_at_price > product.selected_or_first_available_variant.price %}
-        <span class="now">{{ product.selected_or_first_available_variant.price | money }}</span>
-        <span class="was">{{ product.selected_or_first_available_variant.compare_at_price | money }}</span>
-      {% else %}
-        <span class="now">{{ product.selected_or_first_available_variant.price | default: product.price | money }}</span>
-      {% endif %}
+      <span class="now">{{ current_variant.price | money }}</span>
+      {%- if current_variant.compare_at_price > current_variant.price -%}
+        {%- assign save_pct = current_variant.compare_at_price | minus: current_variant.price | times: 100.0 | divided_by: current_variant.compare_at_price | round -%}
+        <span class="was">{{ current_variant.compare_at_price | money }}</span>
+        <span class="product__save">Save {{ save_pct }}%</span>
+      {%- endif -%}
     </p>
+    <p class="product__price-note">Shipping calculated at checkout.</p>
 
     {% form 'product', product, id: 'ProductForm', class: 'product-form', data-product-url: product.url %}
-      <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}" id="ProductSelectedVariantId">
+      <input type="hidden" name="id" value="{{ current_variant.id }}" id="ProductSelectedVariantId">
 
       {% unless product.has_only_default_variant %}
         {% for option in product.options_with_values %}
+          {%- assign selected_label = '' -%}
+          {%- capture option_buttons -%}
+            {%- for value in option.values -%}
+              {%- capture value_text -%}{{ value }}{%- endcapture -%}
+              {%- assign option_label = value_text | split: '$' | first | strip -%}
+              {%- assign last_char = option_label | slice: -1 -%}
+              {%- if last_char == '-' or last_char == '–' or last_char == '(' or last_char == ':' or last_char == '|' or last_char == ',' -%}
+                {%- assign option_label = option_label | remove_last: last_char | strip -%}
+              {%- endif -%}
+              {%- if option_label == blank -%}{%- assign option_label = value_text -%}{%- endif -%}
+              {%- if option.selected_value == value -%}{%- assign selected_label = option_label -%}{%- endif -%}
+              <button
+                type="button"
+                class="option-value{% if option.selected_value == value %} is-selected{% endif %}"
+                data-option-value="{{ value | escape }}"
+                data-option-label="{{ option_label | escape }}"
+                aria-pressed="{% if option.selected_value == value %}true{% else %}false{% endif %}"
+              >
+                {%- render 'option-swatch', label: option_label -%}
+                <span>{{ option_label }}</span>
+              </button>
+            {%- endfor -%}
+          {%- endcapture -%}
           <div class="product-form__option">
-            <label class="product-form__option-label">{{ option.name }}</label>
+            <div class="product-form__option-header">
+              <span class="product-form__option-label">{{ option.name }}</span>
+              <span class="product-form__option-selected" data-selected-label>{{ selected_label }}</span>
+            </div>
             <div class="product-form__option-values" data-option-index="{{ forloop.index0 }}" role="group" aria-label="{{ option.name }}">
-              {% for value in option.values %}
-                <button
-                  type="button"
-                  class="option-value{% if option.selected_value == value %} is-selected{% endif %}"
-                  data-option-value="{{ value | escape }}"
-                  aria-pressed="{% if option.selected_value == value %}true{% else %}false{% endif %}"
-                >
-                  {{ value }}
-                </button>
-              {% endfor %}
+              {{ option_buttons }}
             </div>
           </div>
         {% endfor %}
       {% endunless %}
 
-      <div class="product-form__quantity">
-        <label class="product-form__option-label" for="Quantity">Quantity</label>
+      <div class="product-form__buy">
         <div class="quantity-selector">
           <button type="button" class="quantity-selector__btn" id="QuantityDecrease" aria-label="Decrease quantity">&minus;</button>
           <input type="number" name="quantity" id="Quantity" value="1" min="1" class="quantity-selector__input" aria-label="Quantity">
           <button type="button" class="quantity-selector__btn" id="QuantityIncrease" aria-label="Increase quantity">&plus;</button>
         </div>
+
+        <button
+          type="submit"
+          name="add"
+          class="product-form__submit"
+          id="AddToCartButton"
+          {% unless current_variant.available %}disabled{% endunless %}
+        >
+          <span id="AddToCartText">
+            {% if current_variant.available %}Add to cart{% else %}Sold out{% endif %}
+          </span>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
       </div>
 
-      <button
-        type="submit"
-        name="add"
-        class="button button--primary button--full product-form__submit"
-        id="AddToCartButton"
-        {% unless product.selected_or_first_available_variant.available %}disabled{% endunless %}
-      >
-        <span id="AddToCartText">
-          {% if product.selected_or_first_available_variant.available %}Add to cart{% else %}Sold out{% endif %}
-        </span>
-      </button>
+      {%- if section.settings.show_dynamic_checkout -%}
+        <div class="product-form__dynamic">{{ form | payment_button }}</div>
+      {%- endif -%}
     {% endform %}
 
-    {% if product.description != blank %}
-      <div class="product__description">
-        {{ product.description }}
+    <div class="product__trust">
+      <p class="product__trust-note">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        Secure checkout
+      </p>
+      <div class="product__trust-icons">
+        {%- assign trust_icons = 'shopify_pay,apple_pay,google_pay,visa,master,american_express' | split: ',' -%}
+        {%- for type in trust_icons -%}
+          {{ type | payment_type_svg_tag: class: 'product__pay-icon' }}
+        {%- endfor -%}
       </div>
-    {% endif %}
+    </div>
 
-    {% if product.selected_or_first_available_variant.sku != blank %}
-      <p class="product__sku">SKU: {{ product.selected_or_first_available_variant.sku }}</p>
+    <div class="product__accordions">
+      {% if product.description != blank %}
+        <details class="product-accordion" open>
+          <summary class="product-accordion__summary">Description</summary>
+          <div class="product-accordion__body">{{ product.description }}</div>
+        </details>
+      {% endif %}
+      <details class="product-accordion">
+        <summary class="product-accordion__summary">Shipping &amp; returns</summary>
+        <div class="product-accordion__body">
+          <ul class="product-accordion__links">
+            <li><a href="/policies/shipping-policy">Shipping policy</a></li>
+            <li><a href="/policies/refund-policy">Refund policy</a></li>
+          </ul>
+        </div>
+      </details>
+    </div>
+
+    {% if current_variant.sku != blank %}
+      <p class="product__sku">SKU: <span id="ProductSku">{{ current_variant.sku }}</span></p>
     {% endif %}
   </div>
 </div>
@@ -106,7 +157,26 @@
 {% schema %}
 {
   "name": "Product information",
-  "settings": [],
+  "settings": [
+    {
+      "type": "select",
+      "id": "gallery_style",
+      "label": "Image background",
+      "info": "Light suits photos shot on a white background; dark suits cut-out images.",
+      "options": [
+        { "value": "light", "label": "Light" },
+        { "value": "dark", "label": "Dark" }
+      ],
+      "default": "light"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dynamic_checkout",
+      "label": "Show express checkout button",
+      "info": "Shop Pay, Apple Pay or \"Buy it now\", depending on your payment settings.",
+      "default": true
+    }
+  ],
   "blocks": []
 }
 {% endschema %}
