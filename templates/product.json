@@ -2,7 +2,9 @@
   "sections": {
     "main": {
       "type": "main-product",
-      "settings": {}
+      "settings": {
+        "gallery_style": "cutout"
+      }
     },
     "shop-all-carousel": {
       "type": "shop-all-carousel",

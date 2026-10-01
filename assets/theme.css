@@ -432,6 +432,13 @@ input { font-family: inherit; }
 }
 .product--gallery-light .product__main-image img,
 .product--gallery-light .product__thumbnail img { mix-blend-mode: multiply; }
+.product--gallery-cutout .product__main-image,
+.product--gallery-cutout .product__thumbnail {
+  background: radial-gradient(ellipse at 50% 42%, #ffffff 0%, #f3f0ea 55%, #e4dfd5 100%);
+  border-color: transparent;
+}
+.product--gallery-cutout .product__main-image img { filter: drop-shadow(0 18px 18px rgba(28, 20, 10, 0.22)) drop-shadow(0 4px 5px rgba(28, 20, 10, 0.18)); }
+.product--gallery-cutout .product__thumbnail img { filter: drop-shadow(0 4px 4px rgba(28, 20, 10, 0.2)); }
 
 .product__main-image { aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; }
 .product__main-image img,
