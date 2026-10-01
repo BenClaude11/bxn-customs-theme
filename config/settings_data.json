@@ -6,6 +6,15 @@
     "color_accent_text": "#1c1108",
     "color_border": "#332d24",
     "font_body": "inter_n4",
-    "font_heading": "anton_n4"
+    "font_heading": "anton_n4",
+    "sections": {
+      "footer": {
+        "type": "footer",
+        "settings": {
+          "business_name": "BXN Customs",
+          "abn": "51 935 846 860"
+        }
+      }
+    }
   }
 }

@@ -2,8 +2,9 @@
   <div class="container site-footer__inner">
     <div class="site-footer__row">
       <div class="site-footer__brand">
-        {% if section.settings.business_email != blank %}
-          <p class="site-footer__contact"><a href="mailto:{{ section.settings.business_email }}">{{ section.settings.business_email }}</a></p>
+        {%- assign contact_email = section.settings.business_email | default: shop.email -%}
+        {% if contact_email != blank %}
+          <p class="site-footer__contact"><a href="mailto:{{ contact_email }}">{{ contact_email }}</a></p>
         {% endif %}
         {% if section.settings.business_phone != blank %}
           <p class="site-footer__contact"><a href="tel:{{ section.settings.business_phone }}">{{ section.settings.business_phone }}</a></p>
@@ -62,7 +63,7 @@
       "type": "text",
       "id": "business_email",
       "label": "Business email",
-      "info": "Shown in the footer. Leave blank to hide."
+      "info": "Shown in the footer. Leave blank to use the store contact email from Shopify settings."
     },
     {
       "type": "text",
