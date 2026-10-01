@@ -235,7 +235,7 @@ function initProductForm() {
     qtyInput.value = parseInt(qtyInput.value || '1', 10) + 1;
   });
 
-  // Submit via AJAX so we can open the cart drawer instead of navigating away.
+  // Submit via AJAX so the shopper stays on the product page; the cart icon links to /cart.
   if (form) {
     form.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -253,14 +253,26 @@ function initProductForm() {
           quantity: parseInt(qtyInput ? qtyInput.value : 1, 10)
         })
       })
-        .then(function (res) { return res.json(); })
+        .then(function (res) {
+          return res.json().then(function (data) {
+            if (!res.ok) throw new Error(data.description || data.message || 'Could not add to cart');
+            return data;
+          });
+        })
         .then(function () { return refreshCartDrawer(); })
-        .then(function () { openCartDrawer(); })
-        .catch(function (err) { console.error('Add to cart failed', err); })
-        .finally(function () {
+        .then(function () { showAddResult('Added to cart \u2713'); })
+        .catch(function (err) {
+          console.error('Add to cart failed', err);
+          showAddResult(err.message || 'Could not add to cart');
+        });
+
+      function showAddResult(message) {
+        if (addText) addText.textContent = message;
+        setTimeout(function () {
           if (addBtn) addBtn.disabled = false;
           if (addText) addText.textContent = originalText;
-        });
+        }, 1800);
+      }
     });
   }
 }
@@ -279,14 +291,6 @@ function initCartDrawer() {
   var drawer = document.getElementById('CartDrawer');
   var overlay = document.getElementById('CartDrawerOverlay');
   var closeBtn = document.getElementById('CartDrawerClose');
-  var cartLink = document.getElementById('CartIconLink');
-
-  if (cartLink) {
-    cartLink.addEventListener('click', function (e) {
-      e.preventDefault();
-      refreshCartDrawer().then(openCartDrawer);
-    });
-  }
   if (overlay) overlay.addEventListener('click', closeCartDrawer);
   if (closeBtn) closeBtn.addEventListener('click', closeCartDrawer);
 
