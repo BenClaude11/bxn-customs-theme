@@ -29,7 +29,10 @@
     {% endif %}
 
     <div class="site-footer__row site-footer__bottom">
-      <p>&copy; {{ 'now' | date: '%Y' }} {{ shop.name }}</p>
+      <p>
+        &copy; {{ 'now' | date: '%Y' }} {{ section.settings.business_name | default: shop.name }}
+        {%- if section.settings.abn != blank %} &middot; ABN {{ section.settings.abn }}{% endif %}
+      </p>
       <nav class="site-footer__policies">
         {% for policy in shop.policies %}
           <a href="{{ policy.url }}">{{ policy.title }}</a>
@@ -43,6 +46,18 @@
 {
   "name": "Footer",
   "settings": [
+    {
+      "type": "text",
+      "id": "business_name",
+      "label": "Registered business name",
+      "info": "Shown in the footer copyright line. Defaults to the store name."
+    },
+    {
+      "type": "text",
+      "id": "abn",
+      "label": "ABN",
+      "info": "Shown in the footer next to the business name, e.g. 12 345 678 901. Leave blank to hide."
+    },
     {
       "type": "text",
       "id": "business_email",
@@ -59,7 +74,7 @@
       "type": "text",
       "id": "business_address",
       "label": "Business address",
-      "info": "Required in some regions for consumer-facing stores. Shown in the footer. Leave blank to hide."
+      "info": "Not required for Australian online stores. Shown in the footer. Leave blank to hide."
     },
     {
       "type": "link_list",
