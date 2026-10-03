@@ -164,6 +164,18 @@
         if youtube_id == blank and install_video_file_url == blank and install_video_url contains '.mp4'
           assign install_video_file_url = install_video_url
         endif
+
+        comment
+          Built-in install video for throttles, used when the product has no video of its own.
+        endcomment
+        assign install_video_poster = ''
+        assign install_video_portrait = false
+        assign product_kind = product.type | append: ' ' | append: product.title | downcase
+        if install_video == blank and install_video_file_url == blank and youtube_id == blank and product_kind contains 'throttle'
+          assign install_video_file_url = 'install-throttle.mp4' | asset_url
+          assign install_video_poster = 'install-throttle-poster.jpg' | asset_url
+          assign install_video_portrait = true
+        endif
       -%}
       {% if section.settings.show_install %}
         <details class="product-accordion product-install">
@@ -174,8 +186,14 @@
                 {{ install_video | video_tag: controls: true, preload: 'metadata', playsinline: true }}
               </div>
             {% elsif install_video_file_url != blank %}
-              <div class="product-install__video">
-                <video src="{{ install_video_file_url }}" controls preload="metadata" playsinline></video>
+              <div class="product-install__video{% if install_video_portrait %} product-install__video--portrait{% endif %}">
+                <video
+                  src="{{ install_video_file_url }}"
+                  {% if install_video_poster != blank %}poster="{{ install_video_poster }}"{% endif %}
+                  controls
+                  preload="metadata"
+                  playsinline
+                ></video>
               </div>
             {% elsif youtube_id != blank %}
               <div class="product-install__video product-install__video--embed">
