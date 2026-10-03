@@ -137,6 +137,49 @@
           <div class="product-accordion__body">{{ product.description }}</div>
         </details>
       {% endif %}
+      {%- liquid
+        assign install_video = product.metafields.custom.install_video.value
+        assign install_video_url = product.metafields.custom.install_video_url.value | append: ''
+        assign install_steps = product.metafields.custom.install_steps
+        assign youtube_id = ''
+        if install_video_url contains 'youtu.be/'
+          assign youtube_id = install_video_url | split: 'youtu.be/' | last | split: '?' | first
+        elsif install_video_url contains '/shorts/'
+          assign youtube_id = install_video_url | split: '/shorts/' | last | split: '?' | first
+        elsif install_video_url contains 'v='
+          assign youtube_id = install_video_url | split: 'v=' | last | split: '&' | first
+        endif
+      -%}
+      {% if section.settings.show_install %}
+        <details class="product-accordion product-install">
+          <summary class="product-accordion__summary">{{ section.settings.install_heading | default: 'Installation & safety' | escape }}</summary>
+          <div class="product-accordion__body">
+            {% if install_video != blank %}
+              <div class="product-install__video">
+                {{ install_video | video_tag: controls: true, preload: 'metadata', playsinline: true }}
+              </div>
+            {% elsif youtube_id != blank %}
+              <div class="product-install__video product-install__video--embed">
+                <iframe
+                  src="https://www.youtube-nocookie.com/embed/{{ youtube_id | escape }}?rel=0"
+                  title="How to install {{ product.title | escape }}"
+                  loading="lazy"
+                  allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                  allowfullscreen
+                ></iframe>
+              </div>
+            {% endif %}
+
+            {% if install_steps != blank %}
+              <div class="product-install__steps">{{ install_steps | metafield_tag }}</div>
+            {% endif %}
+
+            {% if section.settings.install_warnings != blank %}
+              <div class="product-install__warnings">{{ section.settings.install_warnings }}</div>
+            {% endif %}
+          </div>
+        </details>
+      {% endif %}
       <details class="product-accordion">
         <summary class="product-accordion__summary">Shipping &amp; returns</summary>
         <div class="product-accordion__body">
@@ -169,6 +212,32 @@
         { "value": "dark", "label": "Dark" }
       ],
       "default": "cutout"
+    },
+    {
+      "type": "header",
+      "content": "Installation & safety tab"
+    },
+    {
+      "type": "paragraph",
+      "content": "Each product's video and steps come from product metafields: custom.install_video (file, video), custom.install_video_url (URL, YouTube) and custom.install_steps (rich text). Set them up under Settings > Custom data > Products."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_install",
+      "label": "Show Installation & safety tab",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "install_heading",
+      "label": "Tab heading",
+      "default": "Installation & safety"
+    },
+    {
+      "type": "richtext",
+      "id": "install_warnings",
+      "label": "Safety warnings (shown on every product)",
+      "default": "<p><strong>Before you install</strong></p><ul><li>Check the product suits your bike before connecting anything.</li><li>Disconnect or switch off the battery before working on the electrical system.</li><li>Never bypass or disable brakes, brake cut-off switches, the BMS, fuses or other safety features.</li><li>Test at low speed in a safe, open area before riding normally.</li><li>If you're not confident, have a qualified e-bike or e-moto technician fit it.</li></ul><p>Fitting this product does not make a bike road legal. Read our <a href=\"/policies/legal-notice\">Legal Notice</a> before riding.</p>"
     },
     {
       "type": "checkbox",
