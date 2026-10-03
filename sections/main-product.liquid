@@ -138,8 +138,20 @@
         </details>
       {% endif %}
       {%- liquid
-        assign install_video = product.metafields.custom.install_video.value
-        assign install_video_url = product.metafields.custom.install_video_url.value | append: ''
+        assign install_video_raw = product.metafields.custom.install_video.value
+        assign install_video = blank
+        assign install_video_file_url = ''
+        assign install_video_url = product.metafields.custom.install_video_url.value | default: product.metafields.custom.install_video_link.value | append: ''
+        if install_video_raw.media_type == 'video'
+          assign install_video = install_video_raw
+        elsif install_video_raw.url != blank
+          assign install_video_file_url = install_video_raw.url
+        else
+          assign install_video_text = install_video_raw | append: ''
+          if install_video_text contains 'http'
+            assign install_video_url = install_video_text
+          endif
+        endif
         assign install_steps = product.metafields.custom.install_steps
         assign youtube_id = ''
         if install_video_url contains 'youtu.be/'
@@ -149,6 +161,9 @@
         elsif install_video_url contains 'v='
           assign youtube_id = install_video_url | split: 'v=' | last | split: '&' | first
         endif
+        if youtube_id == blank and install_video_file_url == blank and install_video_url contains '.mp4'
+          assign install_video_file_url = install_video_url
+        endif
       -%}
       {% if section.settings.show_install %}
         <details class="product-accordion product-install">
@@ -157,6 +172,10 @@
             {% if install_video != blank %}
               <div class="product-install__video">
                 {{ install_video | video_tag: controls: true, preload: 'metadata', playsinline: true }}
+              </div>
+            {% elsif install_video_file_url != blank %}
+              <div class="product-install__video">
+                <video src="{{ install_video_file_url }}" controls preload="metadata" playsinline></video>
               </div>
             {% elsif youtube_id != blank %}
               <div class="product-install__video product-install__video--embed">
