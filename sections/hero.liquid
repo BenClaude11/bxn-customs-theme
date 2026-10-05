@@ -1,6 +1,18 @@
 <div class="hero">
   <div class="hero__image">
-    {% if section.settings.show_video %}
+    {% if section.settings.show_video and section.settings.background_video != blank %}
+      {{ section.settings.background_video
+        | video_tag:
+          autoplay: true,
+          loop: true,
+          muted: true,
+          playsinline: true,
+          controls: false,
+          preload: 'auto',
+          image_size: '1800x',
+          class: 'hero__video'
+      }}
+    {% elsif section.settings.show_video %}
       <video class="hero__video" autoplay muted loop playsinline
         {% if section.settings.image %}poster="{{ section.settings.image | image_url: width: 1800 }}"{% endif %}>
         <source src="{{ 'wheelie-clip.mp4' | asset_url }}" type="video/mp4">
@@ -38,7 +50,13 @@
       "id": "show_video",
       "label": "Show background video",
       "default": true,
-      "info": "Uses the bundled placeholder clip. Turn off to fall back to the image below."
+      "info": "Turn off to fall back to the image below."
+    },
+    {
+      "type": "video",
+      "id": "background_video",
+      "label": "Background video",
+      "info": "Upload any video, including 4K, up to 1 GB. Shopify optimises it automatically. Plays muted on loop. Leave empty to use the built-in wheelie clip."
     },
     {
       "type": "image_picker",
