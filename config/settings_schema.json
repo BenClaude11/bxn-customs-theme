@@ -58,5 +58,23 @@
         "default": "anton_n4"
       }
     ]
+  },
+  {
+    "name": "Cart",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "show_free_shipping_bar",
+        "label": "Show free shipping progress bar",
+        "default": true
+      },
+      {
+        "type": "number",
+        "id": "free_shipping_threshold",
+        "label": "Free shipping threshold (AUD)",
+        "default": 150,
+        "info": "Display only. Set up the matching free shipping rate in Settings > Shipping and delivery."
+      }
+    ]
   }
 ]

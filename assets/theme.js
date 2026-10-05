@@ -235,7 +235,7 @@ function initProductForm() {
     qtyInput.value = parseInt(qtyInput.value || '1', 10) + 1;
   });
 
-  // Submit via AJAX so the shopper stays on the product page; the cart icon links to /cart.
+  // Submit via AJAX so the shopper stays on the product page and the cart drawer slides in.
   if (form) {
     form.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -260,7 +260,11 @@ function initProductForm() {
           });
         })
         .then(function () { return refreshCartDrawer(); })
-        .then(function () { showAddResult('Added to cart \u2713'); })
+        .then(function () {
+          if (addBtn) addBtn.disabled = false;
+          if (addText) addText.textContent = originalText;
+          if (!openCartDrawer(addBtn)) showAddResult('Added to cart \u2713');
+        })
         .catch(function (err) {
           console.error('Add to cart failed', err);
           showAddResult(err.message || 'Could not add to cart');
@@ -291,13 +295,68 @@ function initCartDrawer() {
   var drawer = document.getElementById('CartDrawer');
   var overlay = document.getElementById('CartDrawerOverlay');
   var closeBtn = document.getElementById('CartDrawerClose');
+  var panel = document.getElementById('CartDrawerPanel');
+  var cartLink = document.getElementById('CartIconLink');
+
+  // The cart icon opens the drawer; without JS (or the drawer) it still links to /cart.
+  if (cartLink && drawer) {
+    cartLink.addEventListener('click', function (e) {
+      e.preventDefault();
+      openCartDrawer(cartLink);
+      refreshCartDrawer();
+    });
+  }
   if (overlay) overlay.addEventListener('click', closeCartDrawer);
   if (closeBtn) closeBtn.addEventListener('click', closeCartDrawer);
+  if (drawer) {
+    drawer.addEventListener('click', function (e) {
+      if (e.target.closest('[data-cart-drawer-close]')) {
+        e.preventDefault();
+        closeCartDrawer();
+      }
+    });
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && drawer && drawer.classList.contains('is-open')) closeCartDrawer();
+  });
+
+  // Swipe right on the panel to close it, like a native sheet.
+  if (panel) {
+    var startX = 0;
+    var startY = 0;
+    var dragX = 0;
+    var dragging = false;
+    panel.addEventListener('touchstart', function (e) {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      dragX = 0;
+      dragging = false;
+    }, { passive: true });
+    panel.addEventListener('touchmove', function (e) {
+      var dx = e.touches[0].clientX - startX;
+      var dy = e.touches[0].clientY - startY;
+      if (!dragging && Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy)) dragging = true;
+      if (!dragging) return;
+      dragX = Math.max(0, dx);
+      panel.style.transition = 'none';
+      panel.style.transform = 'translateX(' + dragX + 'px)';
+    }, { passive: true });
+    panel.addEventListener('touchend', function () {
+      if (!dragging) return;
+      panel.style.transition = '';
+      panel.style.transform = '';
+      if (dragX > 80) closeCartDrawer();
+      dragging = false;
+    });
+  }
 
   var itemsContainer = document.getElementById('CartDrawerItems');
   if (itemsContainer) {
     bindQuantityControls(itemsContainer, function (lineKey, quantity) {
-      updateCartLine(lineKey, quantity).then(refreshCartDrawer);
+      itemsContainer.classList.add('is-loading');
+      updateCartLine(lineKey, quantity)
+        .then(refreshCartDrawer)
+        .finally(function () { itemsContainer.classList.remove('is-loading'); });
     });
   }
 
@@ -330,20 +389,55 @@ function bindQuantityControls(container, onChange) {
   });
 }
 
-function openCartDrawer() {
+var cartDrawerTrigger = null;
+
+// Returns false when there's no drawer on the page so callers can fall back.
+function openCartDrawer(trigger) {
   var drawer = document.getElementById('CartDrawer');
-  if (drawer) {
-    drawer.classList.add('is-open');
-    drawer.setAttribute('aria-hidden', 'false');
-  }
+  if (!drawer) return false;
+  if (drawer.classList.contains('is-open')) return true;
+  cartDrawerTrigger = trigger || document.activeElement;
+  lockPageScroll();
+  drawer.classList.add('is-open');
+  drawer.setAttribute('aria-hidden', 'false');
+  var closeBtn = document.getElementById('CartDrawerClose');
+  if (closeBtn) setTimeout(function () { closeBtn.focus({ preventScroll: true }); }, 50);
+  return true;
 }
 
 function closeCartDrawer() {
   var drawer = document.getElementById('CartDrawer');
-  if (drawer) {
-    drawer.classList.remove('is-open');
-    drawer.setAttribute('aria-hidden', 'true');
-  }
+  if (!drawer || !drawer.classList.contains('is-open')) return;
+  drawer.classList.remove('is-open');
+  drawer.setAttribute('aria-hidden', 'true');
+  unlockPageScroll();
+  if (cartDrawerTrigger && cartDrawerTrigger.focus) cartDrawerTrigger.focus({ preventScroll: true });
+  cartDrawerTrigger = null;
+}
+
+// Freeze the page behind the drawer. iOS Safari ignores overflow:hidden on
+// body, so pin the body in place and restore the scroll position on close.
+var lockedScrollY = 0;
+function lockPageScroll() {
+  lockedScrollY = window.scrollY || window.pageYOffset || 0;
+  var body = document.body;
+  body.style.position = 'fixed';
+  body.style.top = '-' + lockedScrollY + 'px';
+  body.style.left = '0';
+  body.style.right = '0';
+  body.style.width = '100%';
+  document.documentElement.classList.add('cart-drawer-open');
+}
+
+function unlockPageScroll() {
+  var body = document.body;
+  body.style.position = '';
+  body.style.top = '';
+  body.style.left = '';
+  body.style.right = '';
+  body.style.width = '';
+  document.documentElement.classList.remove('cart-drawer-open');
+  window.scrollTo(0, lockedScrollY);
 }
 
 function updateCartLine(lineKey, quantity) {
@@ -360,6 +454,7 @@ function refreshCartDrawer() {
     .then(function (cart) {
       renderCartDrawer(cart);
       updateCartCount(cart.item_count);
+      renderFreeShippingBars(cart);
       return cart;
     });
 }
@@ -375,13 +470,20 @@ function renderCartDrawer(cart) {
   var footer = document.getElementById('CartDrawerFooter');
   if (!itemsContainer) return;
 
+  var countEl = document.getElementById('CartDrawerCount');
+  if (countEl) countEl.textContent = cart.item_count > 0 ? '(' + cart.item_count + ')' : '';
+
   if (cart.item_count === 0) {
-    itemsContainer.innerHTML = '<p class="cart-drawer__empty">Your cart is empty.</p>';
-    if (footer) footer.style.display = 'none';
+    itemsContainer.innerHTML =
+      '<div class="cart-drawer__empty">' +
+        '<p>Your cart is empty.</p>' +
+        '<a href="/collections/all" class="button button--primary" data-cart-drawer-continue>Shop parts</a>' +
+      '</div>';
+    if (footer) footer.hidden = true;
     return;
   }
 
-  if (footer) footer.style.display = '';
+  if (footer) footer.hidden = false;
   if (subtotalEl) subtotalEl.textContent = formatMoney(cart.total_price);
 
   itemsContainer.innerHTML = cart.items.map(function (item) {
@@ -412,6 +514,32 @@ function renderCartDrawer(cart) {
       '</div>'
     );
   }).join('');
+}
+
+function renderFreeShippingBars(cart) {
+  document.querySelectorAll('[data-free-shipping]').forEach(function (bar) {
+    var threshold = parseInt(bar.dataset.threshold, 10);
+    if (!threshold) return;
+    var total = cart.total_price;
+    var remaining = threshold - total;
+    var percent = Math.min(100, Math.round((total / threshold) * 100));
+    var message = bar.querySelector('[data-free-shipping-message]');
+    var fill = bar.querySelector('[data-free-shipping-fill]');
+    var track = bar.querySelector('[role="progressbar"]');
+
+    if (message) {
+      if (cart.item_count === 0) {
+        message.innerHTML = 'Free shipping on orders over <strong>' + formatMoney(threshold).replace('.00', '') + '</strong>';
+      } else if (remaining > 0) {
+        message.innerHTML = 'You\'re <strong>' + formatMoney(remaining) + '</strong> away from free shipping';
+      } else {
+        message.innerHTML = 'You\'ve unlocked <strong>free shipping</strong>';
+      }
+    }
+    if (fill) fill.style.width = percent + '%';
+    if (track) track.setAttribute('aria-valuenow', percent);
+    bar.classList.toggle('is-complete', remaining <= 0 && cart.item_count > 0);
+  });
 }
 
 function escapeHtml(str) {

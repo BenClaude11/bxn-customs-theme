@@ -1,0 +1,28 @@
+{%- comment -%}
+  Free shipping progress bar. Rendered server-side for the first paint and
+  kept in sync by renderFreeShippingBars() in theme.js.
+{%- endcomment -%}
+{%- if settings.show_free_shipping_bar and settings.free_shipping_threshold > 0 -%}
+  {%- liquid
+    assign threshold_cents = settings.free_shipping_threshold | times: 100
+    assign remaining = threshold_cents | minus: cart.total_price
+    assign percent = cart.total_price | times: 100 | divided_by: threshold_cents
+    if percent > 100
+      assign percent = 100
+    endif
+  -%}
+  <div class="free-shipping{% if remaining <= 0 %} is-complete{% endif %}" data-free-shipping data-threshold="{{ threshold_cents }}">
+    <p class="free-shipping__message" data-free-shipping-message>
+      {%- if cart.item_count == 0 -%}
+        Free shipping on orders over <strong>{{ threshold_cents | money_without_trailing_zeros }}</strong>
+      {%- elsif remaining > 0 -%}
+        You're <strong>{{ remaining | money }}</strong> away from free shipping
+      {%- else -%}
+        You've unlocked <strong>free shipping</strong>
+      {%- endif -%}
+    </p>
+    <div class="free-shipping__track" role="progressbar" aria-label="Progress to free shipping" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ percent }}">
+      <div class="free-shipping__fill" data-free-shipping-fill style="width: {{ percent }}%"></div>
+    </div>
+  </div>
+{%- endif -%}

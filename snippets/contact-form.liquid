@@ -1,0 +1,48 @@
+<div class="contact">
+  <div class="contact__intro">
+    <p>Questions about fitment, an order or a return? Send us a message and we'll get back to you, usually within 1–2 business days.</p>
+    <ul class="contact__points">
+      <li><strong>Not sure it fits?</strong> Tell us your bike's make, model and year, and attach photos of your connectors if you can.</li>
+      <li><strong>Returns:</strong> please message us before sending anything back. We'll reply with instructions.</li>
+      <li><strong>Orders:</strong> include your order number so we can find it fast.</li>
+    </ul>
+  </div>
+
+  {% form 'contact', class: 'contact__form' %}
+    {% if form.posted_successfully? %}
+      <div class="form-success" role="status">Thanks, your message has been sent. We'll be in touch soon.</div>
+    {% endif %}
+    {% if form.errors %}
+      <div class="form-errors" role="alert">{{ form.errors | default_errors }}</div>
+    {% endif %}
+
+    <div class="contact__row">
+      <div class="contact__field">
+        <label for="ContactName">Name</label>
+        <input type="text" id="ContactName" name="contact[name]" autocomplete="name" value="{{ form.name }}" required>
+      </div>
+      <div class="contact__field">
+        <label for="ContactEmail">Email</label>
+        <input type="email" id="ContactEmail" name="contact[email]" autocomplete="email" inputmode="email" value="{{ form.email }}" required>
+      </div>
+    </div>
+
+    <div class="contact__row">
+      <div class="contact__field">
+        <label for="ContactOrder">Order number <span class="contact__optional">(optional)</span></label>
+        <input type="text" id="ContactOrder" name="contact[order_number]" value="{{ form.order_number }}">
+      </div>
+      <div class="contact__field">
+        <label for="ContactBike">Bike make &amp; model <span class="contact__optional">(optional)</span></label>
+        <input type="text" id="ContactBike" name="contact[bike]" value="{{ form.bike }}">
+      </div>
+    </div>
+
+    <div class="contact__field">
+      <label for="ContactMessage">Message</label>
+      <textarea id="ContactMessage" name="contact[body]" rows="6" required>{{ form.body }}</textarea>
+    </div>
+
+    <button type="submit" class="button button--primary contact__submit">Send message</button>
+  {% endform %}
+</div>

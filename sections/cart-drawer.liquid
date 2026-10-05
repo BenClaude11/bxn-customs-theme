@@ -1,25 +1,29 @@
 <div class="cart-drawer" id="CartDrawer" aria-hidden="true">
   <div class="cart-drawer__overlay" id="CartDrawerOverlay"></div>
-  <div class="cart-drawer__panel" role="dialog" aria-label="Cart">
+  <div class="cart-drawer__panel" id="CartDrawerPanel" role="dialog" aria-modal="true" aria-labelledby="CartDrawerTitle" tabindex="-1">
     <div class="cart-drawer__header">
-      <h2>Your cart</h2>
-      <button class="cart-drawer__close" id="CartDrawerClose" aria-label="Close cart">
+      <h2 class="cart-drawer__title" id="CartDrawerTitle">
+        Your cart <span class="cart-drawer__count" id="CartDrawerCount">{% if cart.item_count > 0 %}({{ cart.item_count }}){% endif %}</span>
+      </h2>
+      <button type="button" class="cart-drawer__close" id="CartDrawerClose" aria-label="Close cart">
         {% render 'icon-close' %}
       </button>
     </div>
 
+    {% render 'free-shipping-bar' %}
+
     <div class="cart-drawer__items" id="CartDrawerItems">
-      <!-- populated by cart.js -->
+      <!-- populated by theme.js -->
     </div>
 
-    <div class="cart-drawer__footer" id="CartDrawerFooter">
+    <div class="cart-drawer__footer" id="CartDrawerFooter"{% if cart.item_count == 0 %} hidden{% endif %}>
       <div class="cart-drawer__subtotal">
         <span>Subtotal</span>
         <span id="CartDrawerSubtotal">{{ cart.total_price | money }}</span>
       </div>
-      <p class="cart-drawer__note">Shipping and taxes calculated at checkout.</p>
-      <a href="{{ routes.cart_url }}" class="button button--secondary button--full">View cart</a>
-      <a href="{{ routes.cart_url }}/checkout" class="button button--primary button--full">Checkout</a>
+      <p class="cart-drawer__note">Shipping calculated at checkout.</p>
+      <a href="{{ routes.cart_url }}/checkout" class="button button--primary button--full cart-drawer__checkout">Checkout</a>
+      <a href="{{ routes.cart_url }}" class="cart-drawer__view-cart">View full cart</a>
     </div>
   </div>
 </div>
