@@ -26,19 +26,6 @@
       "soldOut": false,
       "type": "Throttle",
       "description": "A CNC-machined throttle with a grippy, textured handle, designed to give you more grip and a more responsive feel.\n\n**Check fitment before you order.** Make sure the connector matches your bike. Not sure? [Ask us](contact.html) with your bike's make, model and year and a photo of your connector."
-    },
-    {
-      "soldOut": false,
-      "title": "Kais balls",
-      "handle": "Kais-Testicles",
-      "price": 999,
-      "images": [
-        "/assets/uploads/1st-order.png"
-      ],
-      "videos": [
-        "/assets/uploads/2026-09-16-18-52-12.mp4"
-      ],
-      "description": "kais testicles provide poor seminal value and are hairless."
     }
   ]
 }
