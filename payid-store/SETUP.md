@@ -51,6 +51,8 @@ Open **/admin → Store → Store settings** and set:
 - **PayID** and **PayID account name**. Until these are filled in, the payment
   screen tells customers you'll email them the payment details.
 - Shipping rate ($11.95) and free shipping threshold ($150) are already set.
+- **Order number prefix** (optional): the letters at the start of each order
+  number, e.g. `BXN` gives `BXN-4F7K2Q`.
 - Click **Publish**. The live site updates within a minute or two.
 
 ---

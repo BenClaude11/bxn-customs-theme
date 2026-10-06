@@ -670,7 +670,9 @@
     (window.crypto || window.msCrypto).getRandomValues(bytes);
     var id = '';
     for (var i = 0; i < bytes.length; i++) id += chars[bytes[i] % chars.length];
-    return 'BXN-' + id;
+    // Letters and numbers only, so it pastes cleanly into any bank's reference field.
+    var prefix = String(SETTINGS.orderPrefix || 'BXN').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8) || 'BXN';
+    return prefix + '-' + id;
   }
 
   function initCheckout() {

@@ -69,6 +69,7 @@ collections:
           - { label: Flat shipping rate (AUD), name: shippingFlatRate, widget: number, value_type: float, step: 0.05 }
           - { label: Free shipping from (AUD), name: freeShippingThreshold, widget: number, value_type: float, hint: "Set to 0 to turn off free shipping." }
           - { label: Cancel unpaid orders after (hours), name: unpaidCancelHours, widget: number, value_type: int }
+          - { label: Order number prefix, name: orderPrefix, widget: string, required: false, hint: "Letters and numbers only, up to 8 (e.g. BXN gives BXN-4F7K2Q). Customers use the order number as their payment reference." }
           - { label: Business name, name: businessName, widget: string }
           - { label: ABN, name: abn, widget: string }
           - { label: Contact email, name: contactEmail, widget: string }
