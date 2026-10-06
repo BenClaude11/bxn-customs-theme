@@ -55,11 +55,11 @@ Installing or modifying electrical parts carries real risks. The following can d
 - the wrong voltage
 - an incompatible controller, battery or display.
 
-Disconnect the battery before working on your bike, follow the instructions exactly, and test the bike at low speed in a safe place before riding. If you're not confident doing the work, don't do it yourself; have a qualified technician fit it. Modifying your bike may also affect its manufacturer's warranty, its registration or your insurance.
+Disconnect the battery before working on your bike, follow the supplied instructions exactly, and test the bike at low speed in a safe place before riding. If you're not confident doing the work, Don't do it. Modifying your bike may also affect its manufacturer's warranty, its registration or your insurance.
 
 ## 8. Instructions and warnings
 
-Installation instructions are shown on each product's page. Read them in full before you install or ride, and keep them for future reference. If anything is missing or unclear, contact us before installing.
+Installation instructions are shown on its product page. Read them in full before you install or ride, and keep them for future reference. If anything is missing or unclear, contact us before installing.
 
 ## 9. Your rights under the Australian Consumer Law
 
@@ -71,11 +71,9 @@ The consumer guarantees don't cover loss or damage caused by things outside our 
 
 All content on this site belongs to BXN Customs or is used with permission, including text, logos, designs, photos, graphics and product listings. You must not copy, reproduce, modify, upload, sell or distribute it without our written permission.
 
-## 11. Support conduct
-
 We're here to help, but we may refuse, limit or pause support for anyone who is abusive, threatening or harassing, who spams us, or who acts in bad faith. This doesn't affect any rights you have under the Australian Consumer Law.
 
-## 12. Contact
+## 11. Contact
 
 For questions or support, contact BXN Customs:
 
