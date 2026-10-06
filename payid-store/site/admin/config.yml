@@ -30,8 +30,7 @@ collections:
                 hint: "Lowercase words joined with dashes, e.g. dirodi-cnc-throttle. Don't change it once the product is live."
               - { label: Category, name: type, widget: string, required: false, hint: "e.g. Throttle" }
               - { label: Price (AUD), name: price, widget: number, value_type: float, min: 0, step: 0.05 }
-              - { label: Sold out, name: soldOut, widget: boolean, default: false, required: false }
-              - { label: Stock, name: stock, widget: number, value_type: int, min: 0, required: false, hint: "How many you have. Shows Sold out at 0. Leave blank to not track stock. If this product has options, set stock on each option below instead." }
+              - { label: Sold out, name: soldOut, widget: boolean, default: false, required: false, hint: "Stock counts are set on the Stock page: clinquant-kheer-c1c5f5.netlify.app/admin/stock.html. New products and options show Sold out until you give them stock there." }
               - label: Photos
                 name: images
                 widget: list
@@ -51,8 +50,7 @@ collections:
                 fields:
                   - { label: Option name, name: name, widget: string, hint: "e.g. Black" }
                   - { label: Photo for this option, name: image, widget: image, required: false }
-                  - { label: Sold out, name: soldOut, widget: boolean, default: false, required: false }
-                  - { label: Stock, name: stock, widget: number, value_type: int, min: 0, required: false, hint: "How many of this option you have. Leave blank to not track stock." }
+                  - { label: Sold out, name: soldOut, widget: boolean, default: false, required: false, hint: "Stock counts are set on the Stock page: clinquant-kheer-c1c5f5.netlify.app/admin/stock.html. New products and options show Sold out until you give them stock there." }
               - { label: Description, name: description, widget: markdown }
               - { label: Install video, name: installVideo, widget: file, required: false, hint: "Shown in the Installation & safety tab. MP4, under about 20 MB." }
               - { label: Install video cover image, name: installVideoPoster, widget: image, required: false }

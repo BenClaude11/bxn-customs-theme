@@ -7,6 +7,10 @@
   var PRODUCTS = [];
   var CART_KEY = 'bxn_cart_v2';
   var ORDER_KEY = 'bxn_last_order_v1';
+  // Store data is read straight from GitHub so admin edits show up without a
+  // Netlify rebuild (netlify.toml skips builds for data-only commits). GitHub
+  // caches these for up to 5 minutes. Falls back to the deployed copy.
+  var DATA_BASE = 'https://raw.githubusercontent.com/BenClaude11/bxn-customs-theme/claude/compassionate-dijkstra-5yypbi/payid-store/site/';
 
   /* ---------------- Helpers ---------------- */
   function cents(dollars) { return Math.round((Number(dollars) || 0) * 100); }
@@ -64,6 +68,13 @@
     try { window.localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* storage blocked */ }
   }
 
+  function fetchText(url) {
+    return fetch(url, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error(url); return r.text(); });
+  }
+  function loadText(path) {
+    return fetchText(DATA_BASE + path).catch(function () { return fetchText(path); });
+  }
+
   function isConfigured(value) { return value && String(value).indexOf('REPLACE_WITH') !== 0; }
 
   function shippingRate() { return cents(SETTINGS.shippingFlatRate); }
@@ -76,20 +87,27 @@
 
   function productUrl(p) { return 'product.html?p=' + encodeURIComponent(p.handle); }
 
-  // A blank stock box means "don't track stock"; a number (including 0) is the count on hand.
-  function stockValue(raw) {
-    if (raw === '' || raw == null) return null;
-    var n = parseInt(raw, 10);
-    return isNaN(n) ? null : Math.max(0, n);
+  // stock.json is the source of truth for what can be sold. It's kept up to date by
+  // the reserve-stock function (on every order) and /admin/stock.html. Anything
+  // without a stock line counts as 0, so nothing can be sold that isn't counted.
+  function stockKey(handle, option) { return handle + '|' + (option || ''); }
+
+  function stockMap(data) {
+    var map = {};
+    ((data && data.items) || []).forEach(function (i) {
+      if (i && i.product) map[stockKey(i.product, i.option)] = Math.max(0, parseInt(i.stock, 10) || 0);
+    });
+    return map;
   }
 
-  function normaliseProducts(list) {
+  function normaliseProducts(list, stock) {
+    var stockOf = function (handle, option) { return stock[stockKey(handle, option)] || 0; };
     return (list || []).filter(function (p) { return p && p.handle && p.title; }).map(function (p) {
       var variants = (p.variants || []).filter(function (v) { return v && v.name; }).map(function (v) {
-        var stock = stockValue(v.stock);
-        return { name: v.name, image: v.image || '', stock: stock, soldOut: !!v.soldOut || stock === 0 };
+        var count = stockOf(p.handle, v.name);
+        return { name: v.name, image: v.image || '', stock: count, soldOut: !!v.soldOut || count === 0 };
       });
-      var stock = variants.length ? null : stockValue(p.stock);
+      var stock = variants.length ? null : stockOf(p.handle, '');
       var allVariantsOut = variants.length > 0 && variants.every(function (v) { return v.soldOut; });
       return {
         title: p.title,
@@ -117,9 +135,9 @@
   function maxQty(p, variantName) {
     if (!p || p.soldOut) return 0;
     var v = p.variants.filter(function (x) { return x.name === variantName; })[0];
+    if (p.variants.length && !v) return 0;
     if (v && v.soldOut) return 0;
-    var stock = v ? v.stock : p.stock;
-    return stock == null ? 99 : Math.min(99, stock);
+    return Math.min(99, v ? v.stock : p.stock);
   }
 
   function cartQty(handle, variant) {
@@ -676,7 +694,7 @@
       qtyValue.textContent = qty;
       addBtn.disabled = !!soldOut || left === 0;
       addBtn.textContent = soldOut ? 'Sold out' : left === 0 ? 'All in your cart' : 'Add to cart';
-      var showNote = !soldOut && stock != null && stock <= LOW_STOCK;
+      var showNote = !soldOut && stock <= LOW_STOCK;
       stockNote.hidden = !showNote;
       if (showNote) stockNote.textContent = 'Only ' + stock + ' left';
     }
@@ -772,21 +790,93 @@
       var submitBtn = document.getElementById('PlaceOrder');
       submitBtn.disabled = true;
       submitBtn.textContent = 'Placing order...';
+      showCheckoutError('');
 
       var params = orderParams(order);
 
+      // Stock is reserved on the server first. If that fails for any reason the
+      // order stops here, so we never take an order we can't fill.
+      reserveStock(order.id, d.lines).then(function (result) {
+        if (!result.ok) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Place order';
+          if (result.shortages) applyShortages(result.shortages);
+          showCheckoutError(result.message);
+          return;
+        }
+        recordOrder();
+      });
+
       // Record the order wherever we can, but never block the customer:
       // the confirmation page offers a one-tap email if nothing got through.
-      Promise.all([submitToNetlify(params), sendEmails(params)]).then(function (results) {
-        order.savedToNetlify = results[0];
-        order.emailed = results[1];
-        order.recorded = results[0] || results[1];
-        storageSet(ORDER_KEY, order);
-        form.dataset.submitted = '1';
-        saveCart([]);
-        window.location.href = 'order.html';
-      });
+      function recordOrder() {
+        Promise.all([submitToNetlify(params), sendEmails(params)]).then(function (results) {
+          order.savedToNetlify = results[0];
+          order.emailed = results[1];
+          order.recorded = results[0] || results[1];
+          storageSet(ORDER_KEY, order);
+          form.dataset.submitted = '1';
+          saveCart([]);
+          window.location.href = 'order.html';
+        });
+      }
     });
+
+    function showCheckoutError(message) {
+      var el = document.getElementById('CheckoutError');
+      if (!el) {
+        el = document.createElement('p');
+        el.id = 'CheckoutError';
+        el.className = 'form-error';
+        el.setAttribute('role', 'alert');
+        document.getElementById('PlaceOrder').insertAdjacentElement('beforebegin', el);
+      }
+      el.textContent = message;
+      el.hidden = !message;
+    }
+  }
+
+  // Asks the server to take these items off stock. Resolves to
+  // { ok: true } or { ok: false, message, shortages? }; never rejects.
+  function reserveStock(orderId, lines) {
+    if (isLocalPreview()) return Promise.resolve({ ok: true });
+    var items = lines.map(function (l) { return { handle: l.handle, variant: l.variant, qty: l.qty }; });
+    var tryAgain = 'We couldn\'t place your order just now. Please try again in a minute, or contact us if it keeps happening.';
+    return withTimeout(fetch('/.netlify/functions/reserve-stock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId: orderId, items: items })
+    }).then(function (res) {
+      return res.json().catch(function () { return {}; }).then(function (body) {
+        if (res.ok && body.ok) return { ok: true };
+        if (res.status === 409 && body.shortages) {
+          var names = body.shortages.map(function (s) {
+            var p = findProduct(s.handle);
+            var name = (p ? p.title : s.handle) + (s.variant ? ' (' + s.variant + ')' : '');
+            return s.available > 0 ? name + ': only ' + s.available + ' left' : name + ': sold out';
+          });
+          return { ok: false, shortages: body.shortages, message: 'Sorry, someone got there first. ' + names.join('; ') + '. We\'ve updated your cart, please check it and place your order again.' };
+        }
+        return { ok: false, message: tryAgain };
+      });
+    }).catch(function () { return { ok: false, message: tryAgain }; }), 15000).then(function (r) {
+      return r || { ok: false, message: tryAgain };
+    });
+  }
+
+  // Updates local stock with what the server says is left and trims the cart to fit.
+  function applyShortages(shortages) {
+    shortages.forEach(function (s) {
+      var p = findProduct(s.handle);
+      if (!p) return;
+      var v = p.variants.filter(function (x) { return x.name === s.variant; })[0];
+      var target = v || p;
+      target.stock = s.available;
+      if (s.available <= 0) target.soldOut = true;
+    });
+    saveCart(getCart().map(function (l) {
+      return { handle: l.handle, variant: l.variant, qty: Math.min(l.qty, maxQty(findProduct(l.handle), l.variant)) };
+    }).filter(function (l) { return l.qty > 0; }));
   }
 
   function orderParams(order) {
@@ -949,8 +1039,7 @@
     if (!root) return;
     var slug = (new URLSearchParams(window.location.search).get('p') || '').replace(/[^a-z0-9-]/g, '');
     if (!slug) { root.innerHTML = '<h1 class="page__heading">Policy not found</h1>'; return; }
-    fetch('content/policies/' + slug + '.md', { cache: 'no-cache' })
-      .then(function (r) { if (!r.ok) throw new Error('missing'); return r.text(); })
+    loadText('content/policies/' + slug + '.md')
       .then(function (text) {
         var meta = {};
         var body = text;
@@ -971,15 +1060,15 @@
   }
 
   /* ---------------- Boot ---------------- */
-  function loadJson(url) {
-    return fetch(url, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error(url); return r.json(); });
+  function loadJson(path) {
+    return loadText(path).then(JSON.parse);
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    Promise.all([loadJson('assets/data/settings.json'), loadJson('assets/data/products.json')])
+    Promise.all([loadJson('assets/data/settings.json'), loadJson('assets/data/products.json'), loadJson('assets/data/stock.json')])
       .then(function (res) {
         SETTINGS = res[0] || {};
-        PRODUCTS = normaliseProducts(res[1] && res[1].products);
+        PRODUCTS = normaliseProducts(res[1] && res[1].products, stockMap(res[2]));
       })
       .catch(function (err) {
         console.error('Could not load store data', err);

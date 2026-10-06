@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Stock – BXN Customs Admin</title>
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+  .stock { max-width: 640px; margin: 0 auto; padding: 32px 16px 64px; }
+  .stock h1 { margin: 0 0 6px; }
+  .stock__intro { color: var(--muted); margin: 0 0 24px; }
+  .stock__row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .stock__name { font-weight: 700; }
+  .stock__option { color: var(--muted); font-size: 0.9rem; }
+  .stock__row input { width: 96px; min-height: 46px; padding: 0 12px; font-size: 1.05rem; text-align: center; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); color: inherit; }
+  .stock__row.is-changed input { border-color: var(--accent); }
+  .stock__actions { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+  .stock__msg { margin: 16px 0 0; padding: 12px 14px; border-radius: 4px; border: 1px solid var(--border); }
+  .stock__msg--ok { border-color: #3a7d44; }
+  .stock__msg--err { border-color: #b3402e; }
+</style>
+</head>
+<body>
+<main class="stock">
+  <p><a href="./">&larr; Back to admin</a></p>
+  <h1 class="page__heading">Stock</h1>
+  <p class="stock__intro">How many of each item you have. Orders take stock off automatically, and anything at 0 shows as Sold out. Changes show on the store within about 5 minutes.</p>
+  <div id="Rows"><p>Loading…</p></div>
+  <div class="stock__actions" id="Actions" hidden>
+    <button type="button" class="button button--primary" id="Save">Save stock</button>
+    <button type="button" class="button" id="Reload">Reload</button>
+  </div>
+  <p class="stock__msg" id="Msg" role="status" hidden></p>
+</main>
+<script>
+(function () {
+  'use strict';
+  var REPO = 'BenClaude11/bxn-customs-theme';
+  var BRANCH = 'claude/compassionate-dijkstra-5yypbi';
+  var STOCK_PATH = 'payid-store/site/assets/data/stock.json';
+  var PRODUCTS_PATH = 'payid-store/site/assets/data/products.json';
+
+  var rowsEl = document.getElementById('Rows');
+  var actions = document.getElementById('Actions');
+  var msg = document.getElementById('Msg');
+  var saveBtn = document.getElementById('Save');
+  var loaded = null; // { rows: [{product, option, label, stock}] } as last read from GitHub
+
+  function token() {
+    try { var u = JSON.parse(localStorage.getItem('decap-cms-user') || 'null'); return u && u.token; } catch (e) { return null; }
+  }
+
+  function say(text, kind) {
+    msg.textContent = text;
+    msg.className = 'stock__msg' + (kind ? ' stock__msg--' + kind : '');
+    msg.hidden = !text;
+  }
+
+  function api(path, init) {
+    init = init || {};
+    init.cache = 'no-store';
+    init.headers = { Authorization: 'Bearer ' + token(), Accept: 'application/vnd.github+json' };
+    return fetch('https://api.github.com/repos/' + REPO + '/contents/' + path + (init.method ? '' : '?ref=' + encodeURIComponent(BRANCH) + '&t=' + Date.now()), init)
+      .then(function (res) {
+        if (res.status === 401) throw new Error('login');
+        return res;
+      });
+  }
+
+  function decode(b64) {
+    var bin = atob(b64.replace(/\n/g, ''));
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return JSON.parse(new TextDecoder().decode(bytes));
+  }
+  function encode(obj) {
+    var bytes = new TextEncoder().encode(JSON.stringify(obj, null, 2) + '\n');
+    var bin = '';
+    bytes.forEach(function (b) { bin += String.fromCharCode(b); });
+    return btoa(bin);
+  }
+
+  function readFile(path) {
+    return api(path).then(function (res) {
+      if (!res.ok) throw new Error('read');
+      return res.json();
+    }).then(function (f) { return { sha: f.sha, data: decode(f.content) }; });
+  }
+
+  function key(product, option) { return product + '|' + (option || ''); }
+
+  function stockOf(stockData, product, option) {
+    var line = (stockData.items || []).filter(function (l) { return key(l.product, l.option) === key(product, option); })[0];
+    return line ? Math.max(0, parseInt(line.stock, 10) || 0) : 0;
+  }
+
+  function load() {
+    say('');
+    if (!token()) {
+      rowsEl.innerHTML = '<p>You need to log in first. <a href="./">Open the admin</a>, log in with GitHub, then come back to this page.</p>';
+      return;
+    }
+    rowsEl.innerHTML = '<p>Loading…</p>';
+    Promise.all([readFile(PRODUCTS_PATH), readFile(STOCK_PATH)]).then(function (res) {
+      var products = (res[0].data.products || []).filter(function (p) { return p && p.handle && p.title; });
+      var stock = res[1].data;
+      var rows = [];
+      products.forEach(function (p) {
+        var variants = (p.variants || []).filter(function (v) { return v && v.name; });
+        if (variants.length) variants.forEach(function (v) {
+          rows.push({ product: p.handle, option: v.name, title: p.title, stock: stockOf(stock, p.handle, v.name) });
+        });
+        else rows.push({ product: p.handle, option: '', title: p.title, stock: stockOf(stock, p.handle, '') });
+      });
+      loaded = { rows: rows };
+      render();
+    }).catch(fail);
+  }
+
+  function render() {
+    if (!loaded.rows.length) { rowsEl.innerHTML = '<p>No products yet.</p>'; actions.hidden = true; return; }
+    rowsEl.innerHTML = loaded.rows.map(function (r, i) {
+      var label = document.createElement('div');
+      label.innerHTML = '<div class="stock__name"></div><div class="stock__option"></div>';
+      label.children[0].textContent = r.title;
+      label.children[1].textContent = r.option || '';
+      return '<label class="stock__row">' + label.innerHTML +
+        '<input type="number" inputmode="numeric" min="0" step="1" data-i="' + i + '" value="' + r.stock + '" aria-label="Stock"></label>';
+    }).join('');
+    actions.hidden = false;
+  }
+
+  rowsEl.addEventListener('input', function (e) {
+    var input = e.target.closest('input[data-i]');
+    if (!input) return;
+    var r = loaded.rows[Number(input.getAttribute('data-i'))];
+    input.closest('.stock__row').classList.toggle('is-changed', String(r.stock) !== input.value);
+  });
+
+  // Only rows you changed are written. If an order changed one of those rows
+  // while you were editing, nothing is saved and you're asked to check again.
+  function save(attempt) {
+    var edits = [];
+    var bad = false;
+    rowsEl.querySelectorAll('input[data-i]').forEach(function (input) {
+      var r = loaded.rows[Number(input.getAttribute('data-i'))];
+      if (input.value === String(r.stock)) return;
+      var n = Number(input.value);
+      if (input.value === '' || !Number.isInteger(n) || n < 0) bad = true;
+      else edits.push({ row: r, value: n });
+    });
+    if (bad) { say('Stock must be a whole number, 0 or more.', 'err'); return; }
+    if (!edits.length) { say('Nothing changed.'); return; }
+
+    saveBtn.disabled = true;
+    say('Saving…');
+    readFile(STOCK_PATH).then(function (latest) {
+      var data = latest.data;
+      if (!Array.isArray(data.items)) data.items = [];
+      var clashes = edits.filter(function (e) { return stockOf(data, e.row.product, e.row.option) !== e.row.stock; });
+      if (clashes.length) {
+        throw new Error('clash');
+      }
+      edits.forEach(function (e) {
+        var line = data.items.filter(function (l) { return key(l.product, l.option) === key(e.row.product, e.row.option); })[0];
+        if (line) line.stock = e.value;
+        else data.items.push({ product: e.row.product, option: e.row.option, stock: e.value });
+      });
+      return api(STOCK_PATH, {
+        method: 'PUT',
+        body: JSON.stringify({ message: 'Stock: update from admin', content: encode(data), sha: latest.sha, branch: BRANCH })
+      });
+    }).then(function (res) {
+      saveBtn.disabled = false;
+      if (res.status === 409 || res.status === 422) {
+        if ((attempt || 0) < 3) return save((attempt || 0) + 1);
+        throw new Error('clash');
+      }
+      if (!res.ok) throw new Error('write');
+      edits.forEach(function (e) { e.row.stock = e.value; });
+      render();
+      say('Saved. The store will show the new stock within about 5 minutes.', 'ok');
+    }).catch(function (err) {
+      saveBtn.disabled = false;
+      fail(err);
+    });
+  }
+
+  function fail(err) {
+    var m = err && err.message;
+    if (m === 'login') say('Your login has expired. Open the admin, log in again, then come back here.', 'err');
+    else if (m === 'clash') { load(); say('An order came in while you were editing, so nothing was saved. The numbers above are now up to date. Please make your change again.', 'err'); }
+    else say('Something went wrong. Check your internet connection and try again.', 'err');
+  }
+
+  saveBtn.addEventListener('click', function () { save(0); });
+  document.getElementById('Reload').addEventListener('click', load);
+  load();
+})();
+</script>
+</body>
+</html>

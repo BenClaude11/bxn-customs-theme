@@ -2,6 +2,13 @@
 [build]
   publish = "."
   command = ""
+  # Every production deploy costs credits. Store data (products, settings, stock,
+  # policies) is read straight from GitHub by site.js, so commits that only touch
+  # those files skip the deploy. Exit code 0 means "skip".
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- . ':(exclude)assets/data' ':(exclude)content'"
+
+[functions]
+  directory = "netlify/functions"
 
 [[headers]]
   for = "/assets/data/*"

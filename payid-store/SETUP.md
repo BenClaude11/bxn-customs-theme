@@ -74,9 +74,31 @@ Open **/admin → Store → Store settings** and set:
 - **Options** (optional): e.g. Black and Silver, each with its own photo.
 - **Description**, **Install video** and **Install video cover image**.
 - Click **Publish**.
+- Then give it stock on the **Stock** page (below). Until you do, it shows Sold out.
+
+### Stock
+Go to **/admin/stock.html** (log in to /admin first), change the numbers and
+click **Save stock**.
+- Every order takes its items off stock automatically, the moment it's placed.
+  The server checks and reserves stock in one step, so the store can't sell
+  more than you have, even if two people order the last one at once.
+- Stock is taken off when the order is **placed**, not paid. If you cancel an
+  unpaid order, add its items back here.
+- Anything at 0, or with no stock line, shows **Sold out**.
+- This relies on the `GITHUB_TOKEN` environment variable in Netlify (a
+  fine-grained GitHub token with Contents read/write on this repo only). If it
+  expires, orders are blocked with a "try again" message until you add a new one
+  and redeploy.
 
 ### Mark something sold out
-Tick **Sold out** on the product, or on just one option (e.g. Silver).
+Set its stock to 0, or tick **Sold out** on the product or option to hide it
+from sale while keeping the count.
+
+### Netlify credits
+The free plan has 300 credits a month and every site rebuild costs 15. Edits to
+products, settings, stock and policies don't rebuild the site: the store reads
+them straight from GitHub and shows them within about 5 minutes. Uploading
+photos or videos, and code changes, do rebuild (15 credits each).
 
 ### Edit a policy
 **Policies →** pick the policy, edit the text, update **Last updated**, then **Publish**.
