@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Checkout – BXN Customs</title>
+<meta name="description" content="Checkout">
+<meta name="theme-color" content="#15130f">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<header id="SiteHeader"></header>
+<main id="MainContent">
+<!-- Hidden form so Netlify detects the order form fields. Orders are submitted by site.js. -->
+<form name="order" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input name="order_id"><input name="customer_name"><input name="customer_email"><input name="customer_phone">
+  <input name="shipping_address"><textarea name="items"></textarea><input name="subtotal"><input name="shipping">
+  <input name="total"><input name="payid"><input name="payid_name"><textarea name="notes"></textarea>
+  <input name="cancel_hours"><input name="business_email"><input name="bot-field">
+</form>
+
+<div class="container page" id="CheckoutRoot">
+  <h1 class="page__heading">Checkout</h1>
+  <div class="checkout">
+    <aside class="checkout__summary">
+      <h2>Order summary</h2>
+      <div class="summary-items" id="SummaryItems"></div>
+      <div class="summary-line"><span>Subtotal</span><span id="SummarySubtotal"></span></div>
+      <div class="summary-line"><span>Shipping (Australia Post, tracked)</span><span id="SummaryShipping"></span></div>
+      <div class="summary-line summary-line--total"><span>Total (AUD)</span><span id="SummaryTotal"></span></div>
+      <div class="pay-explainer">
+        <strong>How payment works</strong>
+        <ol>
+          <li>Place your order. You'll see our PayID and your order number.</li>
+          <li>Pay from your banking app with the order number as the reference.</li>
+          <li>We ship as soon as the payment lands, usually same or next business day.</li>
+        </ol>
+      </div>
+    </aside>
+
+    <form id="CheckoutForm" novalidate>
+      <div class="form-error" id="CheckoutError" role="alert" hidden></div>
+
+      <p class="section-label">Contact</p>
+      <div class="field"><label for="Email">Email</label><input id="Email" name="email" type="email" autocomplete="email" inputmode="email" required></div>
+      <div class="field"><label for="Phone">Mobile <span class="optional">(for delivery updates)</span></label><input id="Phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required></div>
+
+      <p class="section-label">Shipping address (Australia only)</p>
+      <div class="field-row">
+        <div class="field"><label for="FirstName">First name</label><input id="FirstName" name="first_name" autocomplete="given-name" required></div>
+        <div class="field"><label for="LastName">Last name</label><input id="LastName" name="last_name" autocomplete="family-name" required></div>
+      </div>
+      <div class="field"><label for="Address1">Address</label><input id="Address1" name="address1" autocomplete="address-line1" required></div>
+      <div class="field"><label for="Address2">Apartment, unit, etc. <span class="optional">(optional)</span></label><input id="Address2" name="address2" autocomplete="address-line2"></div>
+      <div class="field-row field-row--3">
+        <div class="field"><label for="Suburb">Suburb</label><input id="Suburb" name="suburb" autocomplete="address-level2" required></div>
+        <div class="field"><label for="State">State</label><select id="State" name="state" autocomplete="address-level1" required><option value="">Select</option><option value="NSW">NSW</option><option value="VIC">VIC</option><option value="QLD">QLD</option><option value="WA">WA</option><option value="SA">SA</option><option value="TAS">TAS</option><option value="ACT">ACT</option><option value="NT">NT</option></select></div>
+        <div class="field"><label for="Postcode">Postcode</label><input id="Postcode" name="postcode" autocomplete="postal-code" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required></div>
+      </div>
+      <div class="field"><label for="Notes">Order notes <span class="optional">(optional, e.g. your bike model)</span></label><textarea id="Notes" name="notes" rows="3"></textarea></div>
+
+      <label class="checkbox"><input type="checkbox" name="agree" required> <span>I agree to the <a href="policies/terms-of-service.html" target="_blank">Terms of Service</a>, <a href="policies/refund-policy.html" target="_blank">Refund Policy</a> and <a href="policies/legal-notice.html" target="_blank">Legal Notice</a>, and I've checked this part suits my bike.</span></label>
+
+      <button type="submit" class="button button--primary button--full" id="PlaceOrder">Place order</button>
+      <p style="color:var(--muted);font-size:0.85rem;margin-top:12px">You'll pay by PayID on the next screen. Nothing is charged automatically.</p>
+    </form>
+  </div>
+</div>
+</main>
+<footer id="SiteFooter"></footer>
+<script src="assets/config.js"></script>
+<script src="assets/products.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>
