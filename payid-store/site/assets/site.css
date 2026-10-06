@@ -162,6 +162,8 @@ button { cursor: pointer; }
 .qty { display: inline-flex; align-items: center; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); }
 .qty button { width: 44px; height: 50px; background: none; border: none; font-size: 1.2rem; }
 .qty span, .qty input { min-width: 28px; width: 32px; text-align: center; background: none; border: none; font-weight: 700; }
+.qty button[disabled] { opacity: 0.35; cursor: not-allowed; }
+.product__stock { color: var(--accent); font-weight: 700; font-size: 0.92rem; margin: 0 0 12px; }
 .product__buy .button { flex: 1; }
 .product__pay-note {
   display: flex;

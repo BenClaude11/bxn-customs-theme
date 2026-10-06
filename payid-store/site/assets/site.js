@@ -76,17 +76,31 @@
 
   function productUrl(p) { return 'product.html?p=' + encodeURIComponent(p.handle); }
 
+  // A blank stock box means "don't track stock"; a number (including 0) is the count on hand.
+  function stockValue(raw) {
+    if (raw === '' || raw == null) return null;
+    var n = parseInt(raw, 10);
+    return isNaN(n) ? null : Math.max(0, n);
+  }
+
   function normaliseProducts(list) {
     return (list || []).filter(function (p) { return p && p.handle && p.title; }).map(function (p) {
+      var variants = (p.variants || []).filter(function (v) { return v && v.name; }).map(function (v) {
+        var stock = stockValue(v.stock);
+        return { name: v.name, image: v.image || '', stock: stock, soldOut: !!v.soldOut || stock === 0 };
+      });
+      var stock = variants.length ? null : stockValue(p.stock);
+      var allVariantsOut = variants.length > 0 && variants.every(function (v) { return v.soldOut; });
       return {
         title: p.title,
         handle: p.handle,
         type: p.type || '',
         price: cents(p.price),
-        soldOut: !!p.soldOut,
+        stock: stock,
+        soldOut: !!p.soldOut || stock === 0 || allVariantsOut,
         images: (p.images || []).filter(Boolean),
         videos: (p.videos || []).filter(Boolean),
-        variants: (p.variants || []).filter(function (v) { return v && v.name; }),
+        variants: variants,
         description: p.description || '',
         installVideo: p.installVideo || '',
         installVideoPoster: p.installVideoPoster || ''
@@ -99,13 +113,30 @@
 
   function lineKey(handle, variant) { return handle + '|' + (variant || ''); }
 
+  // Most of this item (product + option) a customer can have in their cart.
+  function maxQty(p, variantName) {
+    if (!p || p.soldOut) return 0;
+    var v = p.variants.filter(function (x) { return x.name === variantName; })[0];
+    if (v && v.soldOut) return 0;
+    var stock = v ? v.stock : p.stock;
+    return stock == null ? 99 : Math.min(99, stock);
+  }
+
+  function cartQty(handle, variant) {
+    var key = lineKey(handle, variant);
+    return getCart().reduce(function (s, l) { return lineKey(l.handle, l.variant) === key ? s + l.qty : s; }, 0);
+  }
+
   function getCart() {
     if (memoryCart) return memoryCart;
     var stored = storageGet(CART_KEY, []);
+    // Drop anything no longer for sale and trim quantities to current stock.
     memoryCart = (Array.isArray(stored) ? stored : []).filter(function (l) {
       var p = findProduct(l.handle);
       return p && l.qty > 0 && (!l.variant || p.variants.some(function (v) { return v.name === l.variant; }));
-    });
+    }).map(function (l) {
+      return { handle: l.handle, variant: l.variant, qty: Math.min(l.qty, maxQty(findProduct(l.handle), l.variant)) };
+    }).filter(function (l) { return l.qty > 0; });
     return memoryCart;
   }
 
@@ -119,14 +150,16 @@
     var cart = getCart().slice();
     var key = lineKey(handle, variant);
     var existing = cart.filter(function (l) { return lineKey(l.handle, l.variant) === key; })[0];
-    if (existing) existing.qty = Math.min(99, existing.qty + qty);
-    else cart.push({ handle: handle, variant: variant || '', qty: qty });
-    saveCart(cart);
+    var max = maxQty(findProduct(handle), variant);
+    if (existing) existing.qty = Math.min(max, existing.qty + qty);
+    else cart.push({ handle: handle, variant: variant || '', qty: Math.min(max, qty) });
+    saveCart(cart.filter(function (l) { return l.qty > 0; }));
   }
 
   function setLineQty(key, qty) {
     var cart = getCart().map(function (l) {
-      return lineKey(l.handle, l.variant) === key ? { handle: l.handle, variant: l.variant, qty: qty } : l;
+      if (lineKey(l.handle, l.variant) !== key) return l;
+      return { handle: l.handle, variant: l.variant, qty: Math.min(qty, maxQty(findProduct(l.handle), l.variant)) };
     }).filter(function (l) { return l.qty > 0; });
     saveCart(cart);
   }
@@ -254,7 +287,8 @@
       ? '<div class="qty" data-key="' + escapeHtml(line.key) + '">' +
           '<button type="button" data-qty-dec aria-label="Decrease quantity of ' + title + '">&minus;</button>' +
           '<span>' + line.qty + '</span>' +
-          '<button type="button" data-qty-inc aria-label="Increase quantity of ' + title + '">+</button>' +
+          '<button type="button" data-qty-inc aria-label="Increase quantity of ' + title + '"' +
+            (line.qty >= maxQty(line.product, line.variant) ? ' disabled' : '') + '>+</button>' +
         '</div>'
       : '<p class="line__variant">Qty ' + line.qty + '</p>';
     return '<div class="line">' +
@@ -573,6 +607,7 @@
           '<p class="product__price">' + money(p.price) + '</p>' +
           '<p class="product__price-note">' + shippingSummary() + '</p>' +
           variants +
+          '<p class="product__stock" id="StockNote" hidden></p>' +
           '<div class="product__buy">' +
             '<div class="qty" id="ProductQty"><button type="button" data-dec aria-label="Decrease quantity">&minus;</button><span id="ProductQtyValue">1</span><button type="button" data-inc aria-label="Increase quantity">+</button></div>' +
             '<button type="button" class="button button--primary" id="AddToCart">Add to cart</button>' +
@@ -624,12 +659,26 @@
 
     var selectedVariant = p.variants.length ? p.variants[0].name : '';
     var addBtn = document.getElementById('AddToCart');
+    var stockNote = document.getElementById('StockNote');
+    var LOW_STOCK = 5;
+    var qty = 1;
+    var qtyValue = document.getElementById('ProductQtyValue');
+
+    // How many more of the selected option can go in the cart.
+    function available() { return Math.max(0, maxQty(p, selectedVariant) - cartQty(p.handle, selectedVariant)); }
 
     function refreshBuyButton() {
       var v = p.variants.filter(function (x) { return x.name === selectedVariant; })[0];
       var soldOut = p.soldOut || (v && v.soldOut);
-      addBtn.disabled = !!soldOut;
-      addBtn.textContent = soldOut ? 'Sold out' : 'Add to cart';
+      var stock = v ? v.stock : p.stock;
+      var left = available();
+      qty = Math.max(1, Math.min(qty, left));
+      qtyValue.textContent = qty;
+      addBtn.disabled = !!soldOut || left === 0;
+      addBtn.textContent = soldOut ? 'Sold out' : left === 0 ? 'All in your cart' : 'Add to cart';
+      var showNote = !soldOut && stock != null && stock <= LOW_STOCK;
+      stockNote.hidden = !showNote;
+      if (showNote) stockNote.textContent = 'Only ' + stock + ' left';
     }
 
     root.querySelectorAll('.variant').forEach(function (btn) {
@@ -647,11 +696,10 @@
       });
     });
     refreshBuyButton();
+    onCartChange = refreshBuyButton;
 
-    var qty = 1;
-    var qtyValue = document.getElementById('ProductQtyValue');
     document.getElementById('ProductQty').addEventListener('click', function (e) {
-      if (e.target.closest('[data-inc]')) qty = Math.min(99, qty + 1);
+      if (e.target.closest('[data-inc]')) qty = Math.max(1, Math.min(available(), qty + 1));
       if (e.target.closest('[data-dec]')) qty = Math.max(1, qty - 1);
       qtyValue.textContent = qty;
     });

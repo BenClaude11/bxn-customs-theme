@@ -31,6 +31,7 @@ collections:
               - { label: Category, name: type, widget: string, required: false, hint: "e.g. Throttle" }
               - { label: Price (AUD), name: price, widget: number, value_type: float, min: 0, step: 0.05 }
               - { label: Sold out, name: soldOut, widget: boolean, default: false, required: false }
+              - { label: Stock, name: stock, widget: number, value_type: int, min: 0, required: false, hint: "How many you have. Shows Sold out at 0. Leave blank to not track stock. If this product has options, set stock on each option below instead." }
               - label: Photos
                 name: images
                 widget: list
@@ -51,6 +52,7 @@ collections:
                   - { label: Option name, name: name, widget: string, hint: "e.g. Black" }
                   - { label: Photo for this option, name: image, widget: image, required: false }
                   - { label: Sold out, name: soldOut, widget: boolean, default: false, required: false }
+                  - { label: Stock, name: stock, widget: number, value_type: int, min: 0, required: false, hint: "How many of this option you have. Leave blank to not track stock." }
               - { label: Description, name: description, widget: markdown }
               - { label: Install video, name: installVideo, widget: file, required: false, hint: "Shown in the Installation & safety tab. MP4, under about 20 MB." }
               - { label: Install video cover image, name: installVideoPoster, widget: image, required: false }
