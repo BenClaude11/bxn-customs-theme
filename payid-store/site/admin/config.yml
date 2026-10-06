@@ -1,0 +1,95 @@
+# BXN Customs admin (Decap CMS). Changes you save here are committed to GitHub,
+# and Netlify republishes the site automatically within a minute or two.
+backend:
+  name: github
+  repo: BenClaude11/bxn-customs-theme
+  branch: claude/compassionate-dijkstra-5yypbi
+
+media_folder: payid-store/site/assets/uploads
+public_folder: /assets/uploads
+
+collections:
+  - name: store
+    label: Store
+    editor:
+      preview: false
+    files:
+      - label: Products
+        name: products
+        file: payid-store/site/assets/data/products.json
+        fields:
+          - label: Products
+            name: products
+            widget: list
+            summary: "{{fields.title}} (${{fields.price}})"
+            fields:
+              - { label: Product name, name: title, widget: string }
+              - label: Page address
+                name: handle
+                widget: string
+                hint: "Lowercase words joined with dashes, e.g. dirodi-cnc-throttle. Don't change it once the product is live."
+              - { label: Category, name: type, widget: string, required: false, hint: "e.g. Throttle" }
+              - { label: Price (AUD), name: price, widget: number, value_type: float, min: 0, step: 0.05 }
+              - { label: Sold out, name: soldOut, widget: boolean, default: false, required: false }
+              - label: Photos
+                name: images
+                widget: list
+                hint: "The first photo is the main one. Transparent PNGs look best on the dark background."
+                field: { label: Photo, name: image, widget: image }
+              - label: Product videos
+                name: videos
+                widget: list
+                required: false
+                hint: "Optional. MP4 videos shown in the photo gallery. Keep each under about 20 MB."
+                field: { label: Video, name: video, widget: file }
+              - label: Options (e.g. colours)
+                name: variants
+                widget: list
+                required: false
+                summary: "{{fields.name}}"
+                fields:
+                  - { label: Option name, name: name, widget: string, hint: "e.g. Black" }
+                  - { label: Photo for this option, name: image, widget: image, required: false }
+                  - { label: Sold out, name: soldOut, widget: boolean, default: false, required: false }
+              - { label: Description, name: description, widget: markdown }
+              - { label: Install video, name: installVideo, widget: file, required: false, hint: "Shown in the Installation & safety tab. MP4, under about 20 MB." }
+              - { label: Install video cover image, name: installVideoPoster, widget: image, required: false }
+
+      - label: Store settings
+        name: settings
+        file: payid-store/site/assets/data/settings.json
+        fields:
+          - { label: Homepage heading, name: heroHeading, widget: string }
+          - { label: Homepage background video, name: heroVideo, widget: file, hint: "MP4, ideally 6–15 seconds and under 20 MB. Plays muted on loop." }
+          - { label: Homepage cover image, name: heroPoster, widget: image, required: false, hint: "Shown while the video loads." }
+          - { label: PayID, name: payId, widget: string, hint: "Exactly as customers should type it." }
+          - { label: PayID account name, name: payIdAccountName, widget: string, hint: "The name customers see in their banking app." }
+          - { label: Flat shipping rate (AUD), name: shippingFlatRate, widget: number, value_type: float, step: 0.05 }
+          - { label: Free shipping from (AUD), name: freeShippingThreshold, widget: number, value_type: float, hint: "Set to 0 to turn off free shipping." }
+          - { label: Cancel unpaid orders after (hours), name: unpaidCancelHours, widget: number, value_type: int }
+          - { label: Business name, name: businessName, widget: string }
+          - { label: ABN, name: abn, widget: string }
+          - { label: Contact email, name: contactEmail, widget: string }
+          - label: EmailJS (order emails)
+            name: emailjs
+            widget: object
+            collapsed: true
+            fields:
+              - { label: Public key, name: publicKey, widget: string, required: false }
+              - { label: Service ID, name: serviceId, widget: string, required: false }
+              - { label: Order template ID (to you), name: ownerTemplateId, widget: string, required: false }
+              - { label: Payment details template ID (to customer), name: customerTemplateId, widget: string, required: false }
+
+  - name: policies
+    label: Policies
+    folder: payid-store/site/content/policies
+    extension: md
+    format: frontmatter
+    create: false
+    delete: false
+    editor:
+      preview: false
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Last updated, name: updated, widget: string }
+      - { label: Policy text, name: body, widget: markdown }

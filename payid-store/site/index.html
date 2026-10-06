@@ -14,24 +14,25 @@
 <body>
 <header id="SiteHeader"></header>
 <main id="MainContent">
-<section class="hero">
-  <video class="hero__video" src="assets/video/wheelie-clip.mp4" autoplay muted loop playsinline preload="auto"></video>
-  <div class="container hero__content">
-    <h1 class="hero__heading">Fine tune<br>your ride.</h1>
-    <a class="button button--primary" href="#shop">Shop parts &rarr;</a>
-  </div>
-</section>
+<section class="hero" id="Hero"></section>
 
-<section class="section" id="shop">
+<section class="section">
   <div class="container">
-    <h2 class="section__heading">Shop all</h2>
-    <div class="product-grid" id="ProductGrid"></div>
+    <div class="section__head">
+      <h2 class="section__heading">Shop all</h2>
+      <a class="section__link" href="shop.html">View all &rarr;</a>
+    </div>
+    <div class="carousel">
+      <div class="carousel__track" id="CarouselTrack"></div>
+      <div class="carousel__controls" id="CarouselControls">
+        <button type="button" class="carousel__arrow" id="CarouselPrev" aria-label="Previous products">&larr;</button>
+        <button type="button" class="carousel__arrow" id="CarouselNext" aria-label="Next products">&rarr;</button>
+      </div>
+    </div>
   </div>
 </section>
 </main>
 <footer id="SiteFooter"></footer>
-<script src="assets/config.js"></script>
-<script src="assets/products.js"></script>
 <script src="assets/site.js"></script>
 </body>
 </html>

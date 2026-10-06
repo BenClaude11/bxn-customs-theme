@@ -1,0 +1,9 @@
+# Set the site's Base directory to payid-store/site in Netlify. No build step needed.
+[build]
+  publish = "."
+  command = ""
+
+[[headers]]
+  for = "/assets/data/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"

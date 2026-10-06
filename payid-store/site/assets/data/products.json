@@ -1,0 +1,23 @@
+{
+  "products": [
+    {
+      "title": "Dirodi CNC Throttle",
+      "handle": "dirodi-cnc-throttle",
+      "type": "Throttle",
+      "price": 70,
+      "soldOut": false,
+      "images": [
+        "assets/img/dirodi-cnc-throttle-1.png",
+        "assets/img/dirodi-cnc-throttle-2.png"
+      ],
+      "videos": [],
+      "variants": [
+        { "name": "Black", "image": "assets/img/dirodi-cnc-throttle-1.png", "soldOut": false },
+        { "name": "Silver", "image": "", "soldOut": false }
+      ],
+      "description": "A CNC-machined throttle with a grippy, textured handle, designed to give you more grip and a more responsive feel.\n\n**Check fitment before you order.** Make sure the connector matches your bike. Not sure? [Ask us](contact.html) with your bike's make, model and year and a photo of your connector.",
+      "installVideo": "assets/video/install-throttle.mp4",
+      "installVideoPoster": "assets/video/install-throttle-poster.jpg"
+    }
+  ]
+}

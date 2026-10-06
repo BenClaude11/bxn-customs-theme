@@ -1,64 +1,103 @@
 # BXN Customs PayID store: setup guide
 
 The `site/` folder is the whole website. Customers order online and pay by
-PayID straight into your bank account.
+PayID straight into your bank account. Once it's set up, you edit products,
+photos, videos, the homepage video, settings and policies from **/admin**.
+You don't touch any code.
 
-## 1. Add your PayID
+---
 
-Open `site/assets/config.js` and change these two lines:
+## Part 1: Put the site online, connected to GitHub (one time, ~15 min)
 
-```js
-payId: 'REPLACE_WITH_YOUR_PAYID',             // e.g. 'bxncustoms@gmail.com'
-payIdAccountName: 'REPLACE_WITH_ACCOUNT_NAME', // the name customers see in their bank app
-```
+The admin page saves your changes to GitHub, and Netlify republishes the site
+automatically. So Netlify needs to be connected to your GitHub repo, not
+drag-and-drop.
 
-Until these are filled in, the payment screen says "PayID coming soon, email us to pay".
+1. Sign up at https://app.netlify.com/signup and choose **Sign up with GitHub**,
+   using the GitHub account that owns `BenClaude11/bxn-customs-theme`.
+2. Click **Add new site → Import an existing project → GitHub**, then choose
+   **bxn-customs-theme**.
+3. Fill in:
+   - **Branch to deploy:** `claude/compassionate-dijkstra-5yypbi`
+   - **Base directory:** `payid-store/site`
+   - **Build command:** leave empty
+   - **Publish directory:** `payid-store/site`
+4. Click **Deploy**. It goes live at an address like `random-name.netlify.app`.
+   Rename it under **Site configuration → Change site name**, e.g. `bxncustoms`.
+5. Turn on order saving: **Site configuration → Forms → Enable form detection**.
+   Then **Deploys → Trigger deploy → Deploy site** once, so Netlify sees the
+   order and contact forms.
+6. Get order emails: **Site configuration → Notifications → Emails and webhooks
+   → Form submission notifications → Add notification → Email notification**.
+   Pick the `order` form and enter your business Gmail. Repeat for `contact`.
 
-## 2. Put the site online (Netlify, free)
+## Part 2: Turn on the admin login (one time, ~5 min)
 
-1. Sign up at https://app.netlify.com/signup using the business Gmail. If it asks
-   for someone 18 or older, a parent signs up instead.
-2. Go to **Sites → Add new site → Deploy manually**.
-3. Drag the `site` folder (or the zip, unzipped) onto the page.
-4. It goes live at an address like `random-name.netlify.app`. Change it under
-   **Site configuration → Change site name**, e.g. `bxncustoms.netlify.app`.
+1. On GitHub, go to **Settings (your profile) → Developer settings → OAuth Apps
+   → New OAuth App**:
+   - **Application name:** BXN Customs Admin
+   - **Homepage URL:** your Netlify address, e.g. `https://bxncustoms.netlify.app`
+   - **Authorization callback URL:** `https://api.netlify.com/auth/done`
+   - Click **Register application**, then **Generate a new client secret**.
+2. In Netlify: **Site configuration → Access & security → OAuth → Install
+   provider → GitHub**. Paste the **Client ID** and **Client secret**.
+3. Go to `https://your-site.netlify.app/admin` and click **Login with GitHub**.
 
-To update the site later, go to **Deploys** and drag the folder on again.
+Treat the client secret like a password. Only paste it into Netlify.
 
-## 3. Get orders emailed to you (Netlify Forms, built in)
+## Part 3: Fill in your details (in /admin)
 
-Every order and contact message is saved in Netlify automatically.
+Open **/admin → Store → Store settings** and set:
+- **PayID** and **PayID account name**. Until these are filled in, the payment
+  screen tells customers you'll email them the payment details.
+- Shipping rate ($11.95) and free shipping threshold ($150) are already set.
+- Click **Publish**. The live site updates within a minute or two.
 
-1. In Netlify, go to **Forms**. You should see `order` and `contact` (after the
-   first deploy, you may need to click **Enable form detection** and redeploy).
-2. Go to **Site configuration → Notifications → Emails and webhooks → Form
-   submission notifications → Add notification → Email notification**.
-3. Choose the `order` form and enter your business Gmail. Repeat for `contact`.
+---
 
-That alone is enough to start taking orders. Customers see the payment details
-on screen after ordering.
+## Everyday editing in /admin
 
-## 4. (Recommended) Email customers their payment details (EmailJS, free)
+### Change the homepage video
+**Store → Store settings → Homepage background video → Choose different file → Upload.**
+- Keep it **short (6–15 seconds)** and **under 20 MB**. A 4K or 120fps phone
+  video is far too big. Trim it and export at **1080p, 30fps** first (CapCut
+  or iMovie), or send it to Claude to compress.
+- It plays muted on loop.
 
-This sends the customer an email with their order number, amount and your PayID.
+### Add a product
+**Store → Products → Add Products**, then fill in:
+- **Product name**, **Page address** (e.g. `speed-limiter-v2`), **Category**, **Price**
+- **Photos**: upload one or more. The first is the main photo. Transparent PNGs look best.
+- **Product videos** (optional): shown in the photo gallery.
+- **Options** (optional): e.g. Black and Silver, each with its own photo.
+- **Description**, **Install video** and **Install video cover image**.
+- Click **Publish**.
+
+### Mark something sold out
+Tick **Sold out** on the product, or on just one option (e.g. Silver).
+
+### Edit a policy
+**Policies →** pick the policy, edit the text, update **Last updated**, then **Publish**.
+
+---
+
+## Optional: email customers their payment details (EmailJS, free)
+
+Netlify already emails *you* each order. EmailJS also emails *the customer*
+their order number, amount and PayID.
 
 1. Sign up at https://www.emailjs.com with the business Gmail.
-2. **Email Services → Add New Service → Gmail**, connect your Gmail. Copy the
-   **Service ID**.
+2. **Email Services → Add New Service → Gmail**. Copy the **Service ID**.
 3. **Email Templates → Create New Template** twice, using the templates below.
    Copy each **Template ID**.
 4. **Account → General**: copy your **Public Key**.
-5. Paste all four into `site/assets/config.js` under `emailjs`, then redeploy.
-6. In EmailJS **Account → Security**, add your site address (e.g.
-   `bxncustoms.netlify.app`) to the allowed domains so no one else can use your
-   templates.
+5. Paste all four into **/admin → Store settings → EmailJS** and publish.
+6. In EmailJS **Account → Security**, add your site address to the allowed domains.
 
 ### Template 1: New order (to you)
-
 - **To email:** your business Gmail
 - **Subject:** `New order {{order_id}}: {{total}}`
 - **Content:**
-
 ```
 New order {{order_id}}
 
@@ -80,12 +119,10 @@ Check your bank for a PayID payment with reference {{order_id}} before shipping.
 ```
 
 ### Template 2: Payment details (to the customer)
-
 - **To email:** `{{customer_email}}`
 - **Reply to:** `{{business_email}}`
 - **Subject:** `Your BXN Customs order {{order_id}}: payment details`
 - **Content:**
-
 ```
 Hi {{customer_name}},
 
@@ -114,24 +151,13 @@ Questions? Just reply to this email.
 BXN Customs
 ```
 
-## 5. Place a test order
+---
 
-Order something on the live site with your own email and check:
-- you get the "New order" email (Netlify and/or EmailJS)
-- the customer email arrives (if EmailJS is set up)
-- the payment screen shows your PayID correctly
+## If an order can't be recorded
 
-## Adding or changing products
-
-Edit `site/assets/products.js`. Copy the existing product block, change the
-handle, title, price (in cents) and photos, and put new photos in
-`site/assets/img/`. Then redeploy.
-
-## Changing shipping
-
-In `site/assets/config.js`: `shippingFlatRate` (1195 = $11.95) and
-`freeShippingThreshold` (15000 = $150). If you change these, update the
-Shipping Policy text in `site/policies/shipping-policy.html` to match.
+If form detection is off and EmailJS isn't set up, the order page shows the
+customer an **"Email my order to BXN Customs"** button, so orders never get
+lost. Turn on form detection (Part 1, step 5) so this rarely happens.
 
 ## Every order
 
