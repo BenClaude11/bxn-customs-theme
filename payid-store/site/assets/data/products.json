@@ -9,12 +9,14 @@
         {
           "name": "Black",
           "image": "assets/img/dirodi-cnc-throttle-1.png",
-          "soldOut": false
+          "soldOut": false,
+          "stock": 1
         },
         {
           "name": "Silver",
           "image": "",
-          "soldOut": false
+          "soldOut": false,
+          "stock": 2
         }
       ],
       "title": "Dirodi CNC Throttle",
