@@ -2,6 +2,8 @@
   "heroHeading": "Fine tune your ride.",
   "heroVideo": "assets/video/wheelie-clip.mp4",
   "heroPoster": "",
+  "carouselSubheading": "Tap a part to open its product page.",
+  "carouselSlots": 8,
   "payId": "REPLACE_WITH_YOUR_PAYID",
   "payIdAccountName": "REPLACE_WITH_ACCOUNT_NAME",
   "shippingFlatRate": 11.95,

@@ -62,6 +62,8 @@ collections:
           - { label: Homepage heading, name: heroHeading, widget: string }
           - { label: Homepage background video, name: heroVideo, widget: file, hint: "MP4, ideally 6–15 seconds and under 20 MB. Plays muted on loop." }
           - { label: Homepage cover image, name: heroPoster, widget: image, required: false, hint: "Shown while the video loads." }
+          - { label: Carousel subheading, name: carouselSubheading, widget: string, required: false }
+          - { label: Carousel slots, name: carouselSlots, widget: number, value_type: int, min: 2, max: 12, hint: "Your products fill these first; any left over show as Coming soon." }
           - { label: PayID, name: payId, widget: string, hint: "Exactly as customers should type it." }
           - { label: PayID account name, name: payIdAccountName, widget: string, hint: "The name customers see in their banking app." }
           - { label: Flat shipping rate (AUD), name: shippingFlatRate, widget: number, value_type: float, step: 0.05 }

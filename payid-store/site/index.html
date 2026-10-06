@@ -16,18 +16,25 @@
 <main id="MainContent">
 <section class="hero" id="Hero"></section>
 
-<section class="section">
-  <div class="container">
-    <div class="section__head">
-      <h2 class="section__heading">Shop all</h2>
+<section class="shop-carousel" id="ShopAll">
+  <div class="shop-carousel__inner">
+    <div class="shop-carousel__head">
+      <div>
+        <h2 class="shop-carousel__heading">Shop all</h2>
+        <p class="shop-carousel__subheading" id="CarouselSubheading"></p>
+      </div>
       <a class="section__link" href="shop.html">View all &rarr;</a>
     </div>
-    <div class="carousel">
-      <div class="carousel__track" id="CarouselTrack"></div>
-      <div class="carousel__controls" id="CarouselControls">
-        <button type="button" class="carousel__arrow" id="CarouselPrev" aria-label="Previous products">&larr;</button>
-        <button type="button" class="carousel__arrow" id="CarouselNext" aria-label="Next products">&rarr;</button>
-      </div>
+    <div class="shop-carousel__viewport" id="CarouselViewport">
+      <div class="shop-carousel__track" id="ShopCarouselTrack"></div>
+    </div>
+    <div class="shop-carousel__advance-row">
+      <button type="button" class="shop-carousel__advance" id="ShopCarouselPrev" aria-label="Show previous products">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+      </button>
+      <button type="button" class="shop-carousel__advance" id="ShopCarouselNext" aria-label="Show next products">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+      </button>
     </div>
   </div>
 </section>

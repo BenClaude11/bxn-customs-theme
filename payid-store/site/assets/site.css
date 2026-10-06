@@ -326,30 +326,60 @@ button { cursor: pointer; }
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
 
-/* Carousel */
-.section__head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
-.section__link { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none; color: var(--muted); }
+/* Shop all carousel (click-to-advance, seamless loop) */
+.section__link { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none; color: var(--muted); white-space: nowrap; }
 .section__link:hover { color: var(--accent); }
-.carousel { position: relative; }
-.carousel__track {
-  display: flex;
-  gap: 16px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-  padding: 8px 0 4px;
-  margin: 0 -16px;
-  padding-inline: 16px;
-  scroll-padding-inline: 16px;
+.shop-carousel { padding: 56px 0 72px; overflow: hidden; }
+.shop-carousel__inner { max-width: 1180px; margin: 0 auto; padding: 0 20px; display: flex; flex-direction: column; gap: 28px; }
+.shop-carousel__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.shop-carousel__heading { font-family: var(--font-heading); font-weight: 400; font-size: clamp(34px, 5vw, 52px); margin: 0; text-transform: uppercase; letter-spacing: 0.01em; }
+.shop-carousel__subheading { margin: 6px 0 0; max-width: 38ch; color: var(--muted); font-size: 14px; line-height: 1.55; }
+.shop-carousel__viewport {
+  position: relative;
+  overflow: hidden;
+  margin-inline: -20px;
+  padding-inline: 20px;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 48px, #000 calc(100% - 48px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 48px, #000 calc(100% - 48px), transparent 100%);
+  touch-action: pan-y;
 }
-.carousel__track::-webkit-scrollbar { display: none; }
-.carousel__slide { flex: 0 0 72%; scroll-snap-align: start; }
-@media (min-width: 600px) { .carousel__slide { flex-basis: 42%; } }
-@media (min-width: 900px) { .carousel__slide { flex-basis: calc((100% - 48px) / 4); } .carousel__track { margin: 0; padding-inline: 0; scroll-padding-inline: 0; } }
-.carousel__controls { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
-.carousel__controls[hidden] { display: none; }
-.carousel__arrow { width: 46px; height: 46px; border-radius: 999px; border: 1px solid var(--border); background: none; font-size: 1.1rem; }
-.carousel__arrow:disabled { opacity: 0.35; cursor: default; }
+.shop-carousel__track { display: flex; gap: 22px; width: max-content; padding-block: 14px 10px; transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); will-change: transform; }
+.shop-carousel__track.is-snapping { transition: none; }
+.carousel-card {
+  position: relative;
+  flex: 0 0 auto;
+  width: 216px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 22px 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.32s ease, border-color 0.32s ease;
+  z-index: 1;
+}
+.carousel-card:hover, .carousel-card:focus-visible { transform: translateY(-10px) scale(1.09); box-shadow: 0 18px 40px -18px rgba(0,0,0,0.45); border-color: transparent; z-index: 5; outline: none; }
+.carousel-card__badge { position: absolute; top: 14px; right: 14px; background: var(--accent); color: var(--accent-text); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 7px; border-radius: 2px; z-index: 2; }
+.carousel-card__image { width: 100%; aspect-ratio: 1.15; display: flex; align-items: center; justify-content: center; }
+.carousel-card__image img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 10px 12px rgba(0,0,0,0.5)); }
+.carousel-card__ghost { width: 64%; height: 46%; border-radius: 10px; background: linear-gradient(135deg, color-mix(in srgb, var(--text) 10%, transparent), color-mix(in srgb, var(--text) 4%, transparent)); }
+.carousel-card__name { font-size: 13.5px; font-weight: 600; line-height: 1.35; min-height: 2.7em; margin: 0; }
+.carousel-card__price { display: flex; align-items: baseline; gap: 8px; margin: 0; font-variant-numeric: tabular-nums; }
+.carousel-card__price .now { font-size: 15px; font-weight: 700; color: var(--accent); }
+.carousel-card__reveal { display: flex; align-items: center; justify-content: space-between; gap: 8px; max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.32s ease, opacity 0.28s ease 0.04s; }
+.carousel-card:hover .carousel-card__reveal, .carousel-card:focus-visible .carousel-card__reveal { max-height: 24px; opacity: 1; }
+.carousel-card__reveal .cta { font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text); }
+.carousel-card__reveal .cta::after { content: ' \2192'; }
+.carousel-card--placeholder { cursor: default; }
+.carousel-card--placeholder .carousel-card__name { color: var(--muted); }
+.shop-carousel__advance-row { display: flex; justify-content: center; gap: 14px; }
+.shop-carousel__advance { width: 50px; height: 50px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--text); display: flex; align-items: center; justify-content: center; transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease; }
+.shop-carousel__advance:hover { background: var(--accent); color: var(--accent-text); border-color: transparent; }
+.shop-carousel__advance:active { transform: scale(0.94); }
+@media (hover: none) { .carousel-card:hover { transform: none; box-shadow: none; border-color: var(--border); } .carousel-card__reveal { max-height: 24px; opacity: 1; } }
 .product-card__image { position: relative; }
 .product-card__badge { position: absolute; top: 10px; left: 10px; padding: 4px 8px; border-radius: 4px; background: var(--text); color: var(--bg); font-size: 0.7rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
 

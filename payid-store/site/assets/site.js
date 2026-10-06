@@ -423,28 +423,98 @@
         '</div>';
     }
 
-    var track = document.getElementById('CarouselTrack');
-    if (track) {
-      track.innerHTML = PRODUCTS.map(function (p) { return '<div class="carousel__slide">' + cardMarkup(p) + '</div>'; }).join('');
-      var prev = document.getElementById('CarouselPrev');
-      var next = document.getElementById('CarouselNext');
-      var step = function (dir) {
-        var slide = track.querySelector('.carousel__slide');
-        var amount = slide ? slide.getBoundingClientRect().width + 16 : track.clientWidth * 0.8;
-        track.scrollBy({ left: dir * amount, behavior: 'smooth' });
-      };
-      var updateArrows = function () {
-        var max = track.scrollWidth - track.clientWidth - 2;
-        prev.disabled = track.scrollLeft <= 2;
-        next.disabled = track.scrollLeft >= max;
-        document.getElementById('CarouselControls').hidden = track.scrollWidth <= track.clientWidth + 2;
-      };
-      prev.addEventListener('click', function () { step(-1); });
-      next.addEventListener('click', function () { step(1); });
-      track.addEventListener('scroll', updateArrows, { passive: true });
-      window.addEventListener('resize', updateArrows);
-      updateArrows();
+    initCarousel();
+  }
+
+  function carouselCardMarkup(p) {
+    if (!p) {
+      return '<div class="carousel-card carousel-card--placeholder" aria-hidden="true">' +
+        '<div class="carousel-card__image"><span class="carousel-card__ghost"></span></div>' +
+        '<p class="carousel-card__name">Coming soon</p></div>';
     }
+    return '<a href="' + productUrl(p) + '" class="carousel-card">' +
+      (p.soldOut ? '<span class="carousel-card__badge">Sold out</span>' : '') +
+      '<div class="carousel-card__image">' + (p.images[0] ? '<img src="' + escapeHtml(p.images[0]) + '" alt="' + escapeHtml(p.title) + '" loading="lazy">' : '') + '</div>' +
+      '<p class="carousel-card__name">' + escapeHtml(p.title) + '</p>' +
+      '<p class="carousel-card__price"><span class="now">' + money(p.price) + '</span></p>' +
+      '<span class="carousel-card__reveal"><span class="cta">View product</span></span>' +
+    '</a>';
+  }
+
+  // Click-to-advance carousel that loops forever. The card list is rendered three
+  // times and the view starts on the middle copy; when a step lands in a spare
+  // copy we jump back by one set-width with no transition, which is invisible
+  // because the neighbouring copy is identical.
+  function initCarousel() {
+    var track = document.getElementById('ShopCarouselTrack');
+    var prevBtn = document.getElementById('ShopCarouselPrev');
+    var nextBtn = document.getElementById('ShopCarouselNext');
+    if (!track || !prevBtn || !nextBtn) return;
+
+    var sub = document.getElementById('CarouselSubheading');
+    if (sub) { sub.textContent = SETTINGS.carouselSubheading || ''; sub.hidden = !SETTINGS.carouselSubheading; }
+
+    var slots = Math.max(2, Math.min(12, parseInt(SETTINGS.carouselSlots, 10) || 8));
+    var items = PRODUCTS.slice(0, Math.max(slots, PRODUCTS.length));
+    while (items.length < slots) items.push(null);
+    var set = items.map(carouselCardMarkup).join('');
+    track.innerHTML = set + set + set;
+
+    var GAP = 22;
+    var TRANSITION_MS = 500;
+    var setWidth = 0;
+    var offset = 0;
+    var isAnimating = false;
+
+    function measure() {
+      track.classList.add('is-snapping');
+      setWidth = (track.scrollWidth + GAP) / 3;
+      offset = -setWidth;
+      track.style.transform = 'translateX(' + offset + 'px)';
+      track.offsetHeight;
+      requestAnimationFrame(function () { track.classList.remove('is-snapping'); });
+    }
+
+    function step(direction) {
+      if (isAnimating) return;
+      isAnimating = true;
+      var card = track.querySelector('.carousel-card');
+      var cardStep = card ? card.getBoundingClientRect().width + GAP : 238;
+      offset -= direction * cardStep;
+      track.style.transform = 'translateX(' + offset + 'px)';
+      setTimeout(function () {
+        var pastFarEdge = offset <= -2 * setWidth;
+        var pastNearEdge = offset >= 0;
+        if (pastFarEdge || pastNearEdge) {
+          track.classList.add('is-snapping');
+          offset += pastFarEdge ? setWidth : -setWidth;
+          track.style.transform = 'translateX(' + offset + 'px)';
+          track.offsetHeight;
+          requestAnimationFrame(function () { track.classList.remove('is-snapping'); });
+        }
+        isAnimating = false;
+      }, TRANSITION_MS);
+    }
+
+    nextBtn.addEventListener('click', function () { step(1); });
+    prevBtn.addEventListener('click', function () { step(-1); });
+
+    // Swipe left/right on phones.
+    var viewport = document.getElementById('CarouselViewport');
+    var sx = 0, sy = 0, swiping = false;
+    viewport.addEventListener('touchstart', function (e) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; swiping = true; }, { passive: true });
+    viewport.addEventListener('touchend', function (e) {
+      if (!swiping) return;
+      swiping = false;
+      var dx = e.changedTouches[0].clientX - sx;
+      var dy = e.changedTouches[0].clientY - sy;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) step(dx < 0 ? 1 : -1);
+    });
+
+    measure();
+    window.addEventListener('load', measure);
+    var resizeTimer;
+    window.addEventListener('resize', function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(measure, 150); });
   }
 
   function initShop() {
