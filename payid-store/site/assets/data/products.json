@@ -26,6 +26,13 @@
       "soldOut": false,
       "type": "Throttle",
       "description": "A CNC-machined throttle with a grippy, textured handle, designed to give you more grip and a more responsive feel.\n\n**Check fitment before you order.** Make sure the connector matches your bike. Not sure? [Ask us](contact.html) with your bike's make, model and year and a photo of your connector."
+    },
+    {
+      "soldOut": false,
+      "title": "Dirodi Surron Throttle",
+      "handle": "dirodi-surron-throttle",
+      "price": 45,
+      "description": "This throttle is a step down from the CNC throttle, however it still offers amazing peformance."
     }
   ]
 }
