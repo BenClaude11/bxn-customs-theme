@@ -1,1 +1,1 @@
-trigger deploy
+trigger deploy: register the order and contact forms (2026-10-07)
