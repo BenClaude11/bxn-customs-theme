@@ -756,15 +756,11 @@
   }
 
   /* ---------------- Checkout ---------------- */
-  function newOrderId() {
-    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    var bytes = new Uint8Array(6);
-    (window.crypto || window.msCrypto).getRandomValues(bytes);
-    var id = '';
-    for (var i = 0; i < bytes.length; i++) id += chars[bytes[i] % chars.length];
-    // Letters and numbers only, so it pastes cleanly into any bank's reference field.
-    var prefix = String(SETTINGS.orderPrefix || 'BXN').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8) || 'BXN';
-    return prefix + '-' + id;
+  // The order number itself (1000, 1001, ...) is handed out by the server when
+  // stock is reserved, so two orders can never share one. Letters and numbers
+  // only, so it pastes cleanly into any bank's reference field.
+  function orderPrefix() {
+    return String(SETTINGS.orderPrefix || 'BXN').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8) || 'BXN';
   }
 
   function initCheckout() {
@@ -797,7 +793,7 @@
       var data = new FormData(form);
       var get = function (k) { return (data.get(k) || '').toString().trim(); };
       var order = {
-        id: newOrderId(),
+        id: null,
         createdAt: new Date().toISOString(),
         customer: {
           name: (get('first_name') + ' ' + get('last_name')).trim(),
@@ -821,11 +817,10 @@
       submitBtn.textContent = 'Placing order...';
       showCheckoutError('');
 
-      var params = orderParams(order);
-
-      // Stock is reserved on the server first. If that fails for any reason the
-      // order stops here, so we never take an order we can't fill.
-      reserveStock(order.id, d.lines).then(function (result) {
+      // Stock is reserved on the server first, which also gives us the order
+      // number. If that fails for any reason the order stops here, so we never
+      // take an order we can't fill.
+      reserveStock(orderPrefix(), d.lines).then(function (result) {
         if (!result.ok) {
           submitBtn.disabled = false;
           submitBtn.textContent = 'Place order';
@@ -833,12 +828,14 @@
           showCheckoutError(result.message);
           return;
         }
+        order.id = result.orderId;
         recordOrder();
       });
 
       // Record the order wherever we can, but never block the customer:
       // the confirmation page offers a one-tap email if nothing got through.
       function recordOrder() {
+        var params = orderParams(order);
         Promise.all([submitToNetlify(params), sendEmails(params)]).then(function (results) {
           order.savedToNetlify = results[0];
           order.emailed = results[1];
@@ -865,19 +862,20 @@
     }
   }
 
-  // Asks the server to take these items off stock. Resolves to
-  // { ok: true } or { ok: false, message, shortages? }; never rejects.
-  function reserveStock(orderId, lines) {
-    if (isLocalPreview()) return Promise.resolve({ ok: true });
+  // Asks the server to take these items off stock and give us the next order
+  // number. Resolves to { ok: true, orderId } or { ok: false, message, shortages? };
+  // never rejects.
+  function reserveStock(prefix, lines) {
+    if (isLocalPreview()) return Promise.resolve({ ok: true, orderId: prefix + '-LOCAL' });
     var items = lines.map(function (l) { return { handle: l.handle, variant: l.variant, qty: l.qty }; });
     var tryAgain = 'We couldn\'t place your order just now. Please try again in a minute, or contact us if it keeps happening.';
     return withTimeout(fetch('/.netlify/functions/reserve-stock', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderId: orderId, items: items })
+      body: JSON.stringify({ prefix: prefix, items: items })
     }).then(function (res) {
       return res.json().catch(function () { return {}; }).then(function (body) {
-        if (res.ok && body.ok) return { ok: true };
+        if (res.ok && body.ok && body.orderId) return { ok: true, orderId: String(body.orderId) };
         if (res.status === 409 && body.shortages) {
           var names = body.shortages.map(function (s) {
             var p = findProduct(s.handle);

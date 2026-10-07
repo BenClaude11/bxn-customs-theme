@@ -16,6 +16,7 @@ const BRANCH = 'claude/compassionate-dijkstra-5yypbi';
 const STOCK_PATH = 'payid-store/site/assets/data/stock.json';
 const PRODUCTS_PATH = 'payid-store/site/assets/data/products.json';
 const MAX_ATTEMPTS = 5;
+const FIRST_ORDER_NUMBER = 1000;
 
 const json = (status, body) => new Response(JSON.stringify(body), {
   status,
@@ -80,7 +81,7 @@ export default async (req) => {
   let body;
   try { body = await req.json(); } catch { return json(400, { ok: false, error: 'bad-json' }); }
   const items = cleanItems(body?.items);
-  const orderId = String(body?.orderId || '').replace(/[^A-Z0-9-]/gi, '').slice(0, 24) || 'unknown';
+  const prefix = String(body?.prefix || 'BXN').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8) || 'BXN';
   if (!items) return json(400, { ok: false, error: 'bad-items' });
 
   try {
@@ -106,7 +107,12 @@ export default async (req) => {
       if (shortages.length) return json(409, { ok: false, error: 'stock', shortages });
 
       for (const item of items) item.line.stock = (parseInt(item.line.stock, 10) || 0) - item.qty;
-      if (await writeStock(stock, sha, orderId)) return json(200, { ok: true });
+      // The order number is handed out in the same write as the stock, so the
+      // compare-and-swap also guarantees no two orders ever share a number.
+      const number = Math.max(FIRST_ORDER_NUMBER, parseInt(stock.nextOrderNumber, 10) || 0);
+      stock.nextOrderNumber = number + 1;
+      const orderId = `${prefix}-${number}`;
+      if (await writeStock(stock, sha, orderId)) return json(200, { ok: true, orderId });
       // Someone else changed stock.json first. Loop and re-check against the new numbers.
     }
     return json(503, { ok: false, error: 'busy' });
