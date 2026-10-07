@@ -19,7 +19,7 @@
   <input name="order_id"><input name="customer_name"><input name="customer_email"><input name="customer_phone">
   <input name="shipping_address"><textarea name="items"></textarea><input name="subtotal"><input name="shipping">
   <input name="total"><input name="payid"><input name="payid_name"><textarea name="notes"></textarea>
-  <input name="cancel_hours"><input name="business_email"><input name="bot-field">
+  <input name="cancel_hours"><input name="business_email"><input name="payment_method"><textarea name="payment_details"></textarea><input name="bot-field">
 </form>
 
 <div class="container page" id="CheckoutRoot">
@@ -34,7 +34,7 @@
       <div class="pay-explainer">
         <strong>How payment works</strong>
         <ol>
-          <li>Place your order. You'll see our PayID and your order number.</li>
+          <li>Place your order. You'll see our payment details and your order number.</li>
           <li>Pay from your banking app with the order number as the reference.</li>
           <li>We ship as soon as the payment lands, usually the same or next business day.</li>
         </ol>
@@ -60,10 +60,18 @@
       </div>
       <div class="field"><label for="Notes">Order notes <span class="optional">(optional, e.g. your bike model)</span></label><textarea id="Notes" name="notes" rows="3"></textarea></div>
 
+      <div id="PaySection" hidden>
+        <p class="section-label">How you'll pay</p>
+        <div class="pay-options">
+          <label class="pay-option"><input type="radio" name="pay_method" value="payid" checked> <span><strong>PayID</strong><span>Usually instant. Pay to our email address from your banking app.</span></span></label>
+          <label class="pay-option"><input type="radio" name="pay_method" value="bank"> <span><strong>Bank transfer</strong><span>Pay to our BSB and account number. Can take 1–2 business days.</span></span></label>
+        </div>
+      </div>
+
       <label class="checkbox"><input type="checkbox" name="agree" required> <span>I agree to the <a href="policy.html?p=terms-of-service" target="_blank">Terms of Service</a>, <a href="policy.html?p=refund-policy" target="_blank">Refund Policy</a> and <a href="policy.html?p=legal-notice" target="_blank">Legal Notice</a>, and I've checked this part suits my bike.</span></label>
 
       <button type="submit" class="button button--primary button--full" id="PlaceOrder">Place order</button>
-      <p style="color:var(--muted);font-size:0.85rem;margin-top:12px">You'll pay by PayID on the next screen. Nothing is charged automatically.</p>
+      <p style="color:var(--muted);font-size:0.85rem;margin-top:12px">You'll see the payment details on the next screen. Nothing is charged automatically.</p>
     </form>
   </div>
 </div>

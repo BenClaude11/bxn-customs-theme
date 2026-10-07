@@ -77,6 +77,32 @@
 
   function isConfigured(value) { return value && String(value).indexOf('REPLACE_WITH') !== 0; }
 
+  /* ---------------- Payment methods ---------------- */
+  // PayID is the default. Bank transfer is offered only once a BSB and account
+  // number are filled in under Store settings.
+  function payIdReady() { return !!isConfigured(SETTINGS.payId); }
+  function bankReady() { return !!(isConfigured(SETTINGS.bsb) && isConfigured(SETTINGS.accountNumber)); }
+  function bankAccountName() { return isConfigured(SETTINGS.bankAccountName) ? SETTINGS.bankAccountName : SETTINGS.payIdAccountName; }
+  function paymentMethod(order) { return order.paymentMethod === 'bank' && bankReady() ? 'bank' : 'payid'; }
+
+  // [label, value, copyable] rows shown on the order page and sent in the emails.
+  function paymentRows(order) {
+    var rows = [['Amount to pay', money(order.total), true]];
+    if (paymentMethod(order) === 'bank') {
+      if (isConfigured(bankAccountName())) rows.push(['Account name', bankAccountName(), false]);
+      rows.push(['BSB', SETTINGS.bsb, true], ['Account number', SETTINGS.accountNumber, true]);
+    } else if (payIdReady()) {
+      rows.push(['PayID', SETTINGS.payId, true]);
+      if (isConfigured(SETTINGS.payIdAccountName)) rows.push(['Account name', SETTINGS.payIdAccountName, false]);
+    }
+    rows.push(['Reference / description', order.id, true]);
+    return rows;
+  }
+
+  function paymentText(order) {
+    return paymentRows(order).map(function (r) { return r[0] + ': ' + r[1]; }).join('\n');
+  }
+
   function shippingRate() { return cents(SETTINGS.shippingFlatRate); }
   function freeThreshold() { return cents(SETTINGS.freeShippingThreshold); }
 
@@ -745,6 +771,8 @@
     var form = document.getElementById('CheckoutForm');
     if (!form) return;
     document.getElementById('ShippingLabel').textContent = 'Shipping (Australia Post, tracked)';
+    // Only ask how they'll pay when there's actually a choice.
+    document.getElementById('PaySection').hidden = !(payIdReady() && bankReady());
 
     onCartChange = function (d) {
       if (form.dataset.submitted) return;
@@ -779,6 +807,7 @@
             .filter(Boolean).join(', ')
         },
         notes: get('notes'),
+        paymentMethod: get('pay_method') === 'bank' || (bankReady() && !payIdReady()) ? 'bank' : 'payid',
         items: d.lines.map(function (l) {
           return { title: l.product.title + (l.variant ? ' – ' + l.variant : ''), qty: l.qty, lineTotal: l.lineTotal };
         }),
@@ -892,6 +921,8 @@
       total: money(order.total),
       payid: SETTINGS.payId,
       payid_name: SETTINGS.payIdAccountName,
+      payment_method: paymentMethod(order) === 'bank' ? 'Bank transfer' : 'PayID',
+      payment_details: paymentText(order),
       notes: order.notes || '-',
       cancel_hours: String(SETTINGS.unpaidCancelHours || 72),
       business_email: SETTINGS.contactEmail
@@ -953,10 +984,8 @@
       return;
     }
 
-    var payIdReady = isConfigured(SETTINGS.payId);
-    var nameRow = isConfigured(SETTINGS.payIdAccountName)
-      ? '<div class="pay-row"><div><p class="pay-row__label">Account name</p><p class="pay-row__value">' + escapeHtml(SETTINGS.payIdAccountName) + '</p></div></div>'
-      : '';
+    var method = paymentMethod(order);
+    var detailsReady = method === 'bank' || payIdReady();
 
     // If the order couldn't be recorded automatically, let the customer send it to us.
     var p = orderParams(order);
@@ -970,17 +999,18 @@
       '<div class="send-order"><p><strong>One last step:</strong> tap below to email your order to us so we can match your payment.</p>' +
       '<a class="button button--primary button--full" href="' + mailto + '">Email my order to BXN Customs</a></div>';
 
-    var payBlock = payIdReady
+    var firstSteps = method === 'bank'
+      ? '<li>Open your banking app and choose <strong>Pay someone → BSB and account number</strong>.</li>' +
+        '<li>Enter the account name, BSB and account number exactly as shown.</li>'
+      : '<li>Open your banking app and choose <strong>Pay someone → PayID</strong>.</li>' +
+        '<li>Paste the PayID and check the account name matches.</li>';
+    var payBlock = detailsReady
       ? '<div class="pay-card">' +
-          payRow('Amount to pay', money(order.total), true, true) +
-          payRow('PayID', SETTINGS.payId, false, true) +
-          nameRow +
-          payRow('Reference / description', order.id, false, true) +
+          paymentRows(order).map(function (r, i) { return payRow(r[0], r[1], i === 0, r[2]); }).join('') +
         '</div>' +
-        '<ol class="steps">' +
-          '<li>Open your banking app and choose <strong>Pay someone → PayID</strong>.</li>' +
-          '<li>Paste the PayID and check the account name matches.</li>' +
+        '<ol class="steps">' + firstSteps +
           '<li>Enter <strong>' + money(order.total) + '</strong> and put <strong>' + escapeHtml(order.id) + '</strong> as the reference or description.</li>' +
+          (method === 'bank' ? '<li>Bank transfers can take 1–2 business days to reach us. We ship once it arrives.</li>' : '') +
           '<li>We\'ll email you tracking once it\'s shipped.</li>' +
         '</ol>'
       : '<div class="pay-card">' + payRow('Amount to pay', money(order.total), true, false) + payRow('Reference', order.id, false, false) + '</div>' +
@@ -990,7 +1020,7 @@
       '<div class="confirm">' +
         '<span class="confirm__badge">Order received</span>' +
         '<h1 class="page__heading">Thanks, ' + escapeHtml(order.customer.name.split(' ')[0]) + '!</h1>' +
-        '<p>Your order <strong>' + escapeHtml(order.id) + '</strong> is reserved. Pay by PayID below and we\'ll ship it as soon as the payment lands.</p>' +
+        '<p>Your order <strong>' + escapeHtml(order.id) + '</strong> is reserved. Pay by ' + (method === 'bank' ? 'bank transfer' : 'PayID') + ' below and we\'ll ship it as soon as the payment lands.</p>' +
         sendBox +
         payBlock +
         '<p class="notice">' +

@@ -284,6 +284,12 @@ button { cursor: pointer; }
 .checkbox { display: flex; gap: 10px; align-items: flex-start; font-size: 0.9rem; margin: 16px 0; }
 .checkbox input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--accent); flex: none; }
 .checkbox a { text-decoration: underline; }
+.pay-options { display: grid; gap: 10px; margin-bottom: 8px; }
+.pay-option { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); cursor: pointer; }
+.pay-option:has(input:checked) { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.pay-option input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--accent); flex: none; }
+.pay-option strong { display: block; }
+.pay-option span span { color: var(--muted); font-size: 0.88rem; }
 .form-error { background: #3a1616; border: 1px solid #7a2c2c; color: #ffb4b4; padding: 12px 14px; border-radius: 6px; margin: 0 0 16px; }
 
 /* Checkout */
