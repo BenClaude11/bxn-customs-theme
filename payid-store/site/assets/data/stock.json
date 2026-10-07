@@ -8,12 +8,13 @@
     {
       "product": "dirodi-cnc-throttle",
       "option": "Silver",
-      "stock": 2
+      "stock": 1
     },
     {
       "product": "dirodi-surron-throttle",
       "option": "",
       "stock": 1
     }
-  ]
+  ],
+  "nextOrderNumber": 1001
 }
